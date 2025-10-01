@@ -1,0 +1,64 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:8000']
+    metrics_path: '/metrics'
+
+  # Profile Service
+  - job_name: 'profile-service'
+    static_configs:
+      - targets: ['profile-service:8000']
+    metrics_path: '/metrics'
+
+  # Auth Service
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:8000']
+    metrics_path: '/metrics'
+
+  # AI Service
+  - job_name: 'ai-service'
+    static_configs:
+      - targets: ['ai-service:8000']
+    metrics_path: '/metrics'
+
+  # Doc Parser
+  - job_name: 'doc-parser'
+    static_configs:
+      - targets: ['doc-parser:8000']
+    metrics_path: '/metrics'
+
+  # Website
+  - job_name: 'website'
+    static_configs:
+      - targets: ['website:8000']
+    metrics_path: '/metrics'
+
+  # MySQL
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['db:3306']
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+
+  # RabbitMQ
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']

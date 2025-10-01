@@ -1,0 +1,301 @@
+services:
+  # API Gateway - Laravel core that routes requests
+  api-gateway:
+    build: ./api-gateway
+    container_name: autofill-api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_ENV=development
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_DATABASE=autofill_gateway
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+    volumes:
+      - ./api-gateway:/var/www/html
+    depends_on:
+      - db
+      - redis
+    networks:
+      - autofill-network
+
+  # Profile Service - Laravel module (multi-tenancy, vault)
+  profile-service:
+    build: ./profile-service
+    container_name: autofill-profile-service
+    ports:
+      - "8001:8000"
+    environment:
+      - APP_ENV=development
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_DATABASE=autofill_profiles
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+    volumes:
+      - ./profile-service:/var/www/html
+    depends_on:
+      - db
+      - redis
+    networks:
+      - autofill-network
+
+  # AI Service - AI/NLP microservice
+  ai-service:
+    build: ./ai-service
+    container_name: autofill-ai-service
+    ports:
+      - "8002:8000"
+    environment:
+      - ENVIRONMENT=development
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./ai-service:/app
+    depends_on:
+      - redis
+    networks:
+      - autofill-network
+
+  # Document Parser - OCR/AI document extraction
+  doc-parser:
+    build: ./doc-parser
+    container_name: autofill-doc-parser
+    ports:
+      - "8003:8000"
+    environment:
+      - ENVIRONMENT=development
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ./doc-parser:/app
+      - ./uploads:/app/uploads
+    depends_on:
+      - redis
+    networks:
+      - autofill-network
+
+  # Website - Laravel + Livewire + Tailwind dashboard
+  website:
+    build: ./website
+    container_name: autofill-website
+    ports:
+      - "8080:8000"
+    environment:
+      - APP_ENV=development
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_DATABASE=autofill_website
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+      - API_GATEWAY_URL=http://api-gateway:8000
+    volumes:
+      - ./website:/var/www/html
+    depends_on:
+      - db
+      - redis
+      - api-gateway
+    networks:
+      - autofill-network
+
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: autofill-database
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: autofill_gateway
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init:/docker-entrypoint-initdb.d
+    networks:
+      - autofill-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: autofill-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - autofill-network
+
+  # Authentication Service - Centralized JWT and OAuth management
+  auth-service:
+    build: ./auth-service
+    container_name: autofill-auth-service
+    ports:
+      - "8004:8000"
+    environment:
+      - APP_ENV=development
+      - JWT_SECRET=your-jwt-secret-here
+      - OAUTH_CLIENT_ID=your-oauth-client-id
+      - OAUTH_CLIENT_SECRET=your-oauth-client-secret
+      - REDIS_URL=redis://redis:6379
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_DATABASE=autofill_auth
+      - DB_USERNAME=root
+      - DB_PASSWORD=password
+    volumes:
+      - ./auth-service:/var/www/html
+    depends_on:
+      - db
+      - redis
+    networks:
+      - autofill-network
+
+  # Message Queue - RabbitMQ for async processing
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: autofill-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+      RABBITMQ_DEFAULT_VHOST: autofill
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - autofill-network
+
+  # Prometheus - Metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: autofill-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--web.console.libraries=/etc/prometheus/console_libraries"
+      - "--web.console.templates=/etc/prometheus/consoles"
+      - "--storage.tsdb.retention.time=200h"
+      - "--web.enable-lifecycle"
+    networks:
+      - autofill-network
+
+  # Grafana - Visualization and dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: autofill-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - prometheus
+    networks:
+      - autofill-network
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: autofill-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger_data:/badger
+    networks:
+      - autofill-network
+
+  # Elasticsearch - For advanced logging and search
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: autofill-elasticsearch
+    restart: unless-stopped
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - autofill-network
+
+  # Kibana - Elasticsearch visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: autofill-kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - autofill-network
+
+  # MinIO - S3-compatible object storage for documents
+  minio:
+    image: minio/minio:latest
+    container_name: autofill-minio
+    restart: unless-stopped
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - autofill-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: autofill-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - api-gateway
+      - website
+      - auth-service
+    networks:
+      - autofill-network
+
+volumes:
+  mysql_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+  jaeger_data:
+  elasticsearch_data:
+  minio_data:
+
+networks:
+  autofill-network:
+    driver: bridge
