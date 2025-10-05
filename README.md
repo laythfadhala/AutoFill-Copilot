@@ -120,7 +120,7 @@ curl -X POST http://localhost:8000/api/auth/register \
 2. Login with your registered credentials
 3. Go to Options to create your autofill profile
 4. Visit any website with forms
-5. Click "Fill Current Form" to test!`
+5. Click "Fill Current Form" to test!
 
 ## 🔧 Service Access
 
@@ -128,7 +128,7 @@ curl -X POST http://localhost:8000/api/auth/register \
 | ------------------- | -------------------------------- | ---------------------- |
 | 🚀 **Backend API**  | http://localhost:8000            | Main API endpoint      |
 | 💚 **Health Check** | http://localhost:8000/api/health | Service status         |
-| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_db) |
+| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_backend) |
 | 🔴 **Redis**        | localhost:6379                   | Cache layer            |
 
 ## 🛠️ Development Commands
@@ -192,12 +192,12 @@ graph TB
     A[Chrome Extension] --> B[Backend Service :8000]
     B --> C[(PostgreSQL)]
     B --> D[(Redis Cache)]
-    B --> E[AI Field Mapping]
 
     subgraph "Backend Service"
         B --> F[Auth Controller]
         B --> G[Profile Controller]
         B --> H[AutoFill Controller]
+        B --> I[Form Mapping Controller]
     end
 ```
 
@@ -210,14 +210,36 @@ graph TB
 -   🚫 **CORS Protection** for browser security
 -   Encrypted data storage
 
-## Monitoring and Logging
+## 📊 Monitoring and Logging
 
--   Centralized logging with structured logs
--   Health check endpoints for each service
--   Redis for caching and session management
--   Database connection pooling
+-   **Structured Logs**: Laravel logging with daily rotation
+-   **Health Endpoints**: `/api/health` and `/api/test` for monitoring
+-   **Redis Caching**: Session management and API response caching
+-   **Database**: PostgreSQL with connection pooling
+-   **Error Tracking**: Laravel error handling and logging
 
-## Deployment
+## 🛠️ Technology Stack
+
+### Backend
+- **Laravel 11** - PHP framework
+- **PHP 8.4** - Programming language
+- **PostgreSQL 15** - Primary database
+- **Redis 7** - Caching and sessions
+- **Laravel Sanctum** - JWT authentication
+- **Docker** - Containerization
+
+### Frontend (Extension)
+- **Chrome Manifest V3** - Extension framework
+- **Vanilla JavaScript** - No framework dependencies
+- **HTML/CSS** - UI components
+- **Chrome APIs** - Extension functionality
+
+### Development
+- **Docker Compose** - Local development
+- **Nginx** - Web server
+- **Composer** - PHP dependency management
+
+## 🚀 Deployment
 
 ### Production Deployment
 
@@ -228,10 +250,13 @@ graph TB
 
 ### Scaling
 
-Services can be scaled independently:
+The backend service can be scaled:
 
 ```bash
-docker-compose up --scale ai-service=3 --scale doc-parser=2
+# Scale backend service (requires load balancer setup)
+docker-compose up --scale backend-service=2
+
+# Note: Scaling requires additional configuration for load balancing
 ```
 
 ## Contributing
@@ -242,9 +267,9 @@ docker-compose up --scale ai-service=3 --scale doc-parser=2
 4. Add tests if applicable
 5. Submit a pull request
 
-## License
+## 📄 License
 
-[Your License Here]
+This project is open source and available under the [MIT License](LICENSE).
 
 ## Support
 
