@@ -1,62 +1,76 @@
 # 🚀 AutoFill Copilot
 
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" alt="Status">
-  <img src="https://img.shields.io/badge/Version-v1.0.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/Status-Development-yellow" alt="Status">
+  <img src="https://img.shields.io/badge/Version-v1.0.0--dev-blue" alt="Version">
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
   <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker">
-  <img src="https://img.shields.io/badge/API-OpenAPI%203.0-85EA2D?logo=swagger" alt="OpenAPI">
+  <img src="https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-4285F4?logo=googlechrome" alt="Chrome Extension">
 </div>
 
 <div align="center">
-  <h3>🧠 Intelligent Form Auto-Filling with AI-Powered Analysis</h3>
-  <p>AutoFill Copilot revolutionizes form filling by intelligently analyzing web forms and automatically populating them with your profile data. Save time, reduce errors, and streamline your online experience.</p>
-</div>
+  <h3>🧠 Intelligent Form Auto-Filling with Pattern Matching</h3>
+  <p>AutoFill Copilot intelligently analyzes web forms and automatically populates them with your profile data using smart field detection. Save time, reduce errors, and streamline your online experience.</p>
+</div></div>
 
 ## 🏗️ Architecture Overview
 
-**Simplified Monolithic Architecture** - Consolidated from microservices for easier deployment and maintenance.
+**Monolithic Architecture** - Simple, consolidated design for easy development and deployment.
 
 ```
-├── extension/         # Chrome browser extension for form detection and auto-filling
-├── backend-service/   # Consolidated Laravel API (auth, profiles, autofill, AI)
-├── docker-compose.yml # Container orchestration for all services
-├── start.sh           # Quick startup script
-└── README.md          # This documentation
+├── extension/           # Chrome Manifest V3 extension
+│   ├── manifest.json   # Extension configuration
+│   ├── background.js   # Service worker for API communication
+│   ├── popup.html/js   # Extension popup interface
+│   ├── options.html/js # Settings and profile management
+│   └── content/        # Content scripts for form interaction
+├── backend-service/     # Laravel 11 API backend
+│   ├── app/            # Controllers, models, services
+│   ├── database/       # Migrations and seeders
+│   ├── routes/         # API endpoints
+│   └── docker/         # Docker configuration
+├── docker-compose.yml  # Container orchestration
+└── README.md          # Project documentation
 ```
 
 ## 📦 Components
 
-### 🔌 Browser Extension
+### 🔌 Chrome Extension (Manifest V3)
 
-Chrome extension that provides:
+Browser extension that provides:
 
--   🕵️ **Smart Form Detection**: Automatically detects and analyzes form fields
--   🤖 **Intelligent Auto-Fill**: Uses AI to match profile data to form fields
--   🔒 **Secure Communication**: Encrypted communication with backend API
--   ⚡ **Real-time Processing**: Instant form filling with user confirmation
+-   🕵️ **Smart Form Detection**: Automatically detects form fields on any website
+-   🎯 **Pattern-Based Matching**: Matches form fields to user data using intelligent patterns
+-   🔒 **Secure Communication**: JWT-authenticated API communication
+-   ⚡ **Instant Fill**: Real-time form population with user confirmation
+-   📊 **Form Counting**: Tracks detected forms across websites
+-   ⚙️ **User-Friendly UI**: Clean popup interface and options page
 
-### � Backend Service (Laravel 11)
+### 🚀 Backend Service (Laravel 11)
 
-Consolidated API service providing:
+RESTful API service providing:
 
--   🔐 **Authentication**: JWT-based auth with Laravel Sanctum
--   👤 **Profile Management**: User profiles with secure data storage
--   🧠 **AI-Powered Mapping**: Intelligent field matching algorithms
--   📊 **Form Analytics**: Learning from user patterns and preferences
--   �️ **Security**: Rate limiting, validation, and data encryption
+-   🔐 **Authentication**: JWT tokens with Laravel Sanctum
+-   👤 **Profile Management**: JSON-based user profile storage
+-   🎯 **AutoFill Engine**: Intelligent field mapping and form analysis
+-   � **Form Mapping**: Domain-specific form learning and optimization
+-   🛡️ **Security**: Input validation, rate limiting, and secure data handling
 
-### 🗄️ Database Layer
+### 🗄️ Infrastructure
 
--   **PostgreSQL**: Primary database for user data and profiles
--   **Redis**: Caching layer for improved performance
--   **Migrations**: Version-controlled database schema management
+-   **PostgreSQL**: Primary database for users, profiles, and form mappings
+-   **Redis**: Caching and session management
+-   **Docker**: Containerized deployment with docker-compose
+-   **Nginx**: Web server and reverse proxy
 
 ## 🌟 Key Features
 
--   **RabbitMQ**: Message queue for async processing
--   **MinIO**: S3-compatible object storage for documents
--   **Redis**: Caching and session management
+-   ✨ **Intelligent Field Detection**: Recognizes name, email, address, phone fields automatically
+-   🎯 **Domain Learning**: Remembers form mappings for each website
+-   🔄 **Multiple Profiles**: Support for personal, business, and custom profiles  
+-   📱 **Cross-Form Support**: Works with any HTML form on any website
+-   🎨 **Clean UI**: Intuitive popup and options interface
+-   🔒 **Privacy First**: Local profile storage with secure API communication
 
 ## 📋 Prerequisites
 
@@ -72,34 +86,41 @@ Consolidated API service providing:
 git clone <repository-url>
 cd AutoFill-Copilot
 
-# Start all services with one command
-./start.sh
+# Start all services
+docker-compose up -d
+
+# Check services are running
+docker-compose ps
 ```
 
-### 2️⃣ **Install Browser Extension**
+### 2️⃣ **Install Chrome Extension**
 
-# Open Chrome Extensions
-
-1. Go to chrome://extensions/
-2. Enable "Developer mode" (top-right toggle)
-3. Click "Load unpacked"
-4. Select the "extension" folder from this project
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable **Developer mode** (toggle in top-right)
+3. Click **"Load unpacked"**
+4. Select the `extension` folder from this project
+5. Extension should appear in your toolbar
 
 ````
 
-### 3️⃣ **Test the System**
+### 3️⃣ **Setup and Test**
 
 ```bash
 # Check backend health
 curl http://localhost:8000/api/health
 
-# Register a test user
-curl -X POST http://localhost:8000/api/register \
+# Register a test user via API
+curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"name":"Test User","email":"test@example.com","password":"password123"}'
+  -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
+```
 
-# Visit any website with forms and test auto-fill!
-````
+**Using the Extension:**
+1. Click the AutoFill Copilot icon in Chrome toolbar
+2. Login with your registered credentials
+3. Go to Options to create your autofill profile
+4. Visit any website with forms
+5. Click "Fill Current Form" to test!`
 
 ## 🔧 Service Access
 
@@ -126,21 +147,43 @@ docker-compose down
 docker-compose up -d --build
 ```
 
-### Consolidated API (Port 8000)
+## 📡 API Documentation
 
-| Method             | Endpoint        | Description                |
-| ------------------ | --------------- | -------------------------- |
-| **Authentication** |
-| `POST`             | `/api/register` | Register new user          |
-| `POST`             | `/api/login`    | User login                 |
-| `POST`             | `/api/logout`   | User logout                |
-| **Profiles**       |
-| `GET`              | `/api/profile`  | Get user profile           |
-| `PUT`              | `/api/profile`  | Update user profile        |
-| **AutoFill**       |
-| `POST`             | `/api/autofill` | Get form field suggestions |
-| **Health**         |
-| `GET`              | `/api/health`   | Service health check       |
+### Authentication Endpoints
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Register new user |
+| `POST` | `/api/auth/login` | User login |
+| `POST` | `/api/auth/logout` | User logout |
+| `GET` | `/api/auth/profile` | Get authenticated user |
+
+### Profile Management  
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/user-profiles` | List user profiles |
+| `POST` | `/api/user-profiles` | Create new profile |
+| `PUT` | `/api/user-profiles/{id}` | Update profile |
+| `DELETE` | `/api/user-profiles/{id}` | Delete profile |
+| `GET` | `/api/users/{id}/default-profile` | Get default profile |
+
+### AutoFill Engine
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/autofill` | Analyze form and get fill suggestions |
+| `POST` | `/api/autofill/analyze` | Analyze form without filling |
+
+### Form Mappings
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/form-mappings` | List user's form mappings |
+| `GET` | `/api/form-mappings/by-domain` | Get mappings by domain |
+| `POST` | `/api/form-mappings/{id}/track-usage` | Track mapping usage |
+
+### System
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/health` | Service health check |
+| `GET` | `/api/test` | Basic connectivity test |
 
 ## 🏗️ System Architecture
 
