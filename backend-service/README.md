@@ -11,20 +11,20 @@
 
 This is the backend API service for AutoFill Copilot, built with Laravel 11. It provides a RESTful API for:
 
-- **User Authentication** - JWT-based authentication with Laravel Sanctum
-- **Profile Management** - JSON-based user profile storage and management
-- **AutoFill Engine** - Intelligent form field analysis and mapping
-- **Form Mappings** - Domain-specific form learning and optimization
-- **API Security** - Input validation, rate limiting, and secure data handling
+-   **User Authentication** - JWT-based authentication with Laravel Sanctum
+-   **Profile Management** - JSON-based user profile storage and management
+-   **AutoFill Engine** - Intelligent form field analysis and mapping
+-   **Form Mappings** - Domain-specific form learning and optimization
+-   **API Security** - Input validation, rate limiting, and secure data handling
 
 ## Key Features
 
-- 🔐 **JWT Authentication** with Laravel Sanctum
-- 👤 **Flexible Profile System** with JSON data storage
-- 🧠 **Smart Form Analysis** with pattern-based field mapping
-- 📊 **Usage Analytics** for form mapping optimization
-- 🛡️ **Security First** with comprehensive input validation
-- 🚀 **Docker Ready** with optimized container setup
+-   🔐 **JWT Authentication** with Laravel Sanctum
+-   👤 **Flexible Profile System** with JSON data storage
+-   🧠 **Smart Form Analysis** with pattern-based field mapping
+-   📊 **Usage Analytics** for form mapping optimization
+-   🛡️ **Security First** with comprehensive input validation
+-   🚀 **Docker Ready** with optimized container setup
 
 ## 🏗️ Project Structure
 
@@ -50,18 +50,21 @@ app/
 ## 🗄️ Database Schema
 
 ### Users Table
-- Basic user authentication data
-- Linked to Laravel Sanctum for JWT tokens
 
-### User Profiles Table  
-- Flexible JSON-based profile storage
-- Support for multiple profiles per user (personal, business, etc.)
-- Profile types and activation status
+-   Basic user authentication data
+-   Linked to Laravel Sanctum for JWT tokens
+
+### User Profiles Table
+
+-   Flexible JSON-based profile storage
+-   Support for multiple profiles per user (personal, business, etc.)
+-   Profile types and activation status
 
 ### Form Mappings Table
-- Domain-specific form field mappings
-- Usage tracking and analytics
-- Learning optimization data
+
+-   Domain-specific form field mappings
+-   Usage tracking and analytics
+-   Learning optimization data
 
 ## 🚀 Local Development
 
@@ -112,10 +115,10 @@ php artisan test --filter AuthTest
 
 See the main project README for complete API documentation. Key endpoints:
 
-- `POST /api/auth/login` - User authentication
-- `GET /api/user-profiles` - Profile management
-- `POST /api/autofill` - Form analysis and filling
-- `GET /api/health` - Health check
+-   `POST /api/auth/login` - User authentication
+-   `GET /api/user-profiles` - Profile management
+-   `POST /api/autofill` - Form analysis and filling
+-   `GET /api/health` - Health check
 
 ## License
 

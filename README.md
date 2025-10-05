@@ -67,7 +67,7 @@ RESTful API service providing:
 
 -   ✨ **Intelligent Field Detection**: Recognizes name, email, address, phone fields automatically
 -   🎯 **Domain Learning**: Remembers form mappings for each website
--   🔄 **Multiple Profiles**: Support for personal, business, and custom profiles  
+-   🔄 **Multiple Profiles**: Support for personal, business, and custom profiles
 -   📱 **Cross-Form Support**: Works with any HTML form on any website
 -   🎨 **Clean UI**: Intuitive popup and options interface
 -   🔒 **Privacy First**: Local profile storage with secure API communication
@@ -157,7 +157,7 @@ docker-compose up -d --build
 | `POST` | `/api/auth/logout` | User logout |
 | `GET` | `/api/auth/profile` | Get authenticated user |
 
-### Profile Management  
+### Profile Management
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | `GET` | `/api/user-profiles` | List user profiles |
@@ -257,3 +257,4 @@ For support and questions:
 ---
 
 **Note**: This is a development setup. For production deployment, additional security measures, monitoring, and configuration adjustments are required.
+````
