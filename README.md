@@ -185,8 +185,7 @@ docker-compose up -d --build
 
 ## 🏗️ System Architecture
 
-```
-mermaid
+```mermaid
 graph TB
     A[Chrome Extension] --> B[Backend Service :8000]
     B --> C[(PostgreSQL)]
