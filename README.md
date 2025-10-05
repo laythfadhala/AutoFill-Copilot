@@ -1,219 +1,170 @@
-# AutoFill Copilot
+# 🚀 AutoFill Copilot
 
-A comprehensive microservices-based application for intelligent form auto-filling with AI-powered document parsing and multi-tenant profile management.
+<div align="center">
+  <img src="https://img.shields.io/badge/Status-Production%20Ready-brightgreen" alt="Status">
+  <img src="https://img.shields.io/badge/Version-v1.0.0-blue" alt="Version">
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License">
+  <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker" alt="Docker">
+  <img src="https://img.shields.io/badge/API-OpenAPI%203.0-85EA2D?logo=swagger" alt="OpenAPI">
+</div>
 
-## Architecture Overview
+<div align="center">
+  <h3>🧠 Intelligent Form Auto-Filling with AI-Powered Analysis</h3>
+  <p>AutoFill Copilot revolutionizes form filling by intelligently analyzing web forms and automatically populating them with your profile data. Save time, reduce errors, and streamline your online experience.</p>
+</div>
+
+## 🏗️ Architecture Overview
+
+**Simplified Monolithic Architecture** - Consolidated from microservices for easier deployment and maintenance.
 
 ```
-├── extension/         # Browser extension for form detection and auto-filling
-├── api-gateway/       # Laravel API gateway (routes and coordinates requests)
-├── profile-service/   # Laravel service (multi-tenancy, secure vault management)
-├── auth-service/      # Centralized authentication and authorization service
-├── ai-service/        # AI/NLP microservice for intelligent field mapping
-├── doc-parser/        # OCR/AI document extraction service
-├── website/           # Laravel + Livewire + Tailwind dashboard
-├── monitoring/        # Prometheus, Grafana configurations
-├── docker-compose.yml # Container orchestration
-└── README.md          # This file
+├── extension/         # Chrome browser extension for form detection and auto-filling
+├── backend-service/   # Consolidated Laravel API (auth, profiles, autofill, AI)
+├── docker-compose.yml # Container orchestration for all services
+├── start.sh           # Quick startup script
+└── README.md          # This documentation
 ```
 
-## Services Description
+## 📦 Components
 
-### 🔌 Extension
+### 🔌 Browser Extension
 
-Browser extension that:
+Chrome extension that provides:
 
--   Detects form fields on web pages
--   Communicates with the API gateway
--   Auto-fills forms based on user profiles
--   Provides seamless user experience
+-   🕵️ **Smart Form Detection**: Automatically detects and analyzes form fields
+-   🤖 **Intelligent Auto-Fill**: Uses AI to match profile data to form fields
+-   🔒 **Secure Communication**: Encrypted communication with backend API
+-   ⚡ **Real-time Processing**: Instant form filling with user confirmation
 
-### 🚪 API Gateway
+### � Backend Service (Laravel 11)
 
-Laravel-based central API that:
+Consolidated API service providing:
 
--   Routes requests between services
--   Handles authentication and authorization
--   Manages API rate limiting
--   Provides unified API endpoints
+-   🔐 **Authentication**: JWT-based auth with Laravel Sanctum
+-   👤 **Profile Management**: User profiles with secure data storage
+-   🧠 **AI-Powered Mapping**: Intelligent field matching algorithms
+-   📊 **Form Analytics**: Learning from user patterns and preferences
+-   �️ **Security**: Rate limiting, validation, and data encryption
 
-### 👤 Profile Service
+### 🗄️ Database Layer
 
-Multi-tenant Laravel service that:
+-   **PostgreSQL**: Primary database for user data and profiles
+-   **Redis**: Caching layer for improved performance
+-   **Migrations**: Version-controlled database schema management
 
--   Manages user profiles and organizations
--   Provides secure data vault functionality
--   Handles multi-tenancy architecture
--   Manages user permissions and access control
-
-### 🤖 AI Service
-
-Python/Node.js AI microservice that:
-
--   Performs intelligent field mapping
--   Uses NLP for form field understanding
--   Provides AI-powered suggestions
--   Learns from user patterns
-
-### 📄 Doc Parser
-
-OCR and document processing service that:
-
--   Extracts data from uploaded documents
--   Performs OCR on images and PDFs
--   Uses AI for intelligent data extraction
--   Supports multiple document formats
-
-### 🔐 Auth Service
-
-Centralized authentication service that:
-
--   Manages JWT tokens and OAuth flows
--   Provides single sign-on (SSO) capabilities
--   Handles user authentication and authorization
--   Integrates with external identity providers
-
-### 🌐 Website
-
-Laravel + Livewire dashboard that:
-
--   Provides web-based management interface
--   Uses Tailwind CSS for modern UI
--   Offers real-time updates with Livewire
--   Manages profiles and settings
-
-## Infrastructure Services
-
-### 📊 Monitoring Stack
-
--   **Prometheus**: Metrics collection and alerting
--   **Grafana**: Visualization dashboards and analytics
--   **Jaeger**: Distributed tracing for microservices
--   **Elasticsearch + Kibana**: Centralized logging and search
-
-### 🚀 Supporting Services
+## 🌟 Key Features
 
 -   **RabbitMQ**: Message queue for async processing
 -   **MinIO**: S3-compatible object storage for documents
 -   **Redis**: Caching and session management
--   **MySQL**: Primary database for all services
 
-## Prerequisites
+## 📋 Prerequisites
 
--   Docker and Docker Compose
--   Git
--   Node.js (for extension development)
--   PHP 8.1+ (for local Laravel development)
+-   🐳 **Docker & Docker Compose** - For containerized deployment
+-   🌐 **Google Chrome** - For extension installation and testing
+-   💻 **Git** - For repository management
 
-## Quick Start
+## ⚡ Quick Start
 
-1. **Clone the repository**
+### 1️⃣ **Clone & Start Backend**
 
-    ```bash
-    git clone <repository-url>
-    cd AutoFill-Copilot
-    ```
+```bash
+git clone <repository-url>
+cd AutoFill-Copilot
 
-2. **Start all services**
+# Start all services with one command
+./start.sh
+```
 
-    ```bash
-    docker-compose up -d
-    ```
+### 2️⃣ **Install Browser Extension**
 
-3. **Access services**
+# Open Chrome Extensions
 
-**Core Application Services:**
+1. Go to chrome://extensions/
+2. Enable "Developer mode" (top-right toggle)
+3. Click "Load unpacked"
+4. Select the "extension" folder from this project
 
--   API Gateway: http://localhost:8000
--   Profile Service: http://localhost:8001
--   AI Service: http://localhost:8002
--   Document Parser: http://localhost:8003
--   Auth Service: http://localhost:8004
--   Website Dashboard: http://localhost:8080
+````
 
-**Infrastructure & Monitoring:**
+### 3️⃣ **Test the System**
 
--   Grafana Dashboard: http://localhost:3000 (admin/admin123)
--   Prometheus Metrics: http://localhost:9090
--   Jaeger Tracing: http://localhost:16686
--   Kibana Logs: http://localhost:5601
--   RabbitMQ Management: http://localhost:15672 (admin/password)
--   MinIO Console: http://localhost:9011 (minioadmin/minioadmin123)
--   MinIO API: http://localhost:9010
+```bash
+# Check backend health
+curl http://localhost:8000/api/health
 
-**Databases:**
+# Register a test user
+curl -X POST http://localhost:8000/api/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password123"}'
 
--   MySQL: localhost:3306
--   Redis: localhost:6379
--   Elasticsearch: localhost:9200
+# Visit any website with forms and test auto-fill!
+````
 
-## Development Setup
+## 🔧 Service Access
 
-### Environment Configuration
+| Service             | URL                              | Description            |
+| ------------------- | -------------------------------- | ---------------------- |
+| 🚀 **Backend API**  | http://localhost:8000            | Main API endpoint      |
+| 💚 **Health Check** | http://localhost:8000/api/health | Service status         |
+| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_db) |
+| 🔴 **Redis**        | localhost:6379                   | Cache layer            |
 
-Each service requires its own environment configuration:
+## 🛠️ Development Commands
 
-1. **API Gateway** (`api-gateway/.env`)
-2. **Profile Service** (`profile-service/.env`)
-3. **Website** (`website/.env`)
+```bash
+# View logs
+docker-compose logs -f
 
-### Database Setup
+# Restart backend only
+docker-compose restart backend-service
 
-The system uses multiple databases:
+# Stop all services
+docker-compose down
 
--   `autofill_gateway` - API Gateway data
--   `autofill_profiles` - Profile Service data
--   `autofill_website` - Website dashboard data
+# Rebuild and restart
+docker-compose up -d --build
+```
 
-### Extension Development
+### Consolidated API (Port 8000)
 
-1. Navigate to the `extension/` directory
-2. Load the extension in Chrome Developer Mode
-3. Point to the `extension/` folder
+| Method             | Endpoint        | Description                |
+| ------------------ | --------------- | -------------------------- |
+| **Authentication** |
+| `POST`             | `/api/register` | Register new user          |
+| `POST`             | `/api/login`    | User login                 |
+| `POST`             | `/api/logout`   | User logout                |
+| **Profiles**       |
+| `GET`              | `/api/profile`  | Get user profile           |
+| `PUT`              | `/api/profile`  | Update user profile        |
+| **AutoFill**       |
+| `POST`             | `/api/autofill` | Get form field suggestions |
+| **Health**         |
+| `GET`              | `/api/health`   | Service health check       |
 
-## Service Communication
+## 🏗️ System Architecture
 
 ```mermaid
 graph TB
-    A[Browser Extension] --> B[API Gateway]
-    B --> C[Profile Service]
-    B --> D[AI Service]
-    B --> E[Doc Parser]
-    F[Website Dashboard] --> B
-    B --> G[(MySQL)]
-    B --> H[(Redis)]
+    A[Chrome Extension] --> B[Backend Service :8000]
+    B --> C[(PostgreSQL)]
+    B --> D[(Redis Cache)]
+    B --> E[AI Field Mapping]
+
+    subgraph "Backend Service"
+        B --> F[Auth Controller]
+        B --> G[Profile Controller]
+        B --> H[AutoFill Controller]
+    end
 ```
 
-## API Endpoints
+## 🔐 Security Features
 
-### API Gateway (Port 8000)
-
--   `GET /api/profiles` - Get user profiles
--   `POST /api/autofill` - Request form auto-fill
--   `POST /api/documents/parse` - Parse uploaded documents
-
-### Profile Service (Port 8001)
-
--   `GET /api/profiles/{id}` - Get specific profile
--   `POST /api/profiles` - Create new profile
--   `PUT /api/profiles/{id}` - Update profile
-
-### AI Service (Port 8002)
-
--   `POST /api/analyze` - Analyze form fields
--   `POST /api/suggestions` - Get field suggestions
-
-### Doc Parser (Port 8003)
-
--   `POST /api/extract` - Extract data from documents
--   `GET /api/formats` - Supported document formats
-
-## Security Features
-
--   Multi-tenant architecture with data isolation
--   Secure vault for sensitive information
--   JWT-based authentication
--   Rate limiting and API protection
+-   🔑 **JWT Authentication** with Laravel Sanctum
+-   🛡️ **Input Validation** and sanitization
+-   🚀 **Rate Limiting** for API protection
+-   🔒 **Encrypted Storage** for sensitive data
+-   🚫 **CORS Protection** for browser security
 -   Encrypted data storage
 
 ## Monitoring and Logging
