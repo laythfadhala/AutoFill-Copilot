@@ -101,8 +101,6 @@ docker-compose ps
 4. Select the `extension` folder from this project
 5. Extension should appear in your toolbar
 
-````
-
 ### 3️⃣ **Setup and Test**
 
 ```bash
@@ -187,7 +185,8 @@ docker-compose up -d --build
 
 ## 🏗️ System Architecture
 
-```mermaid
+```
+mermaid
 graph TB
     A[Chrome Extension] --> B[Backend Service :8000]
     B --> C[(PostgreSQL)]
@@ -282,4 +281,3 @@ For support and questions:
 ---
 
 **Note**: This is a development setup. For production deployment, additional security measures, monitoring, and configuration adjustments are required.
-````
