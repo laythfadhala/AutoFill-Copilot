@@ -15,7 +15,7 @@
 
 ## 🏗️ Architecture Overview
 
-**Monolithic Architecture** - Simple, consolidated design for easy development and deployment.
+**Multi-Service Architecture** - Modular design for scalable development and deployment.
 
 ```
 ├── extension/           # Chrome Manifest V3 extension
@@ -29,8 +29,15 @@
 │   ├── database/       # Migrations and seeders
 │   ├── routes/         # API endpoints
 │   └── docker/         # Docker configuration
+├── ai-service/          # AI model service (Ollama, OCR, vision models)
+│   ├── Dockerfile      # Ollama server and model setup
+│   ├── entrypoint.sh   # Model pull and server start
+│   ├── test_vision_models.sh # Vision/OCR test script
+│   └── test_docs/      # Sample documents for testing
+├── db/                 # PostgreSQL database container
+├── redis/              # Redis cache container
 ├── docker-compose.yml  # Container orchestration
-└── README.md          # Project documentation
+└── README.md           # Project documentation
 ```
 
 ## 📦 Components
@@ -53,8 +60,17 @@ RESTful API service providing:
 -   🔐 **Authentication**: JWT tokens with Laravel Sanctum
 -   👤 **Profile Management**: JSON-based user profile storage
 -   🎯 **AutoFill Engine**: Intelligent field mapping and form analysis
--   � **Form Mapping**: Domain-specific form learning and optimization
+-   🗂️ **Form Mapping**: Domain-specific form learning and optimization
 -   🛡️ **Security**: Input validation, rate limiting, and secure data handling
+
+### 🤖 AI Service (Ollama, Vision, OCR)
+
+AI microservice for document analysis and vision models:
+
+-   🧠 **Ollama Model Server**: Runs LLMs for text and vision tasks
+-   🖼️ **Vision/OCR Pipeline**: Converts PDFs/images to text using Tesseract OCR
+-   🧪 **Test Scripts**: `test_vision_models.sh` for automated document extraction
+-   📂 **Sample Docs**: `test_docs/` folder for real-world testing
 
 ### 🗄️ Infrastructure
 
@@ -103,6 +119,14 @@ docker-compose ps
 
 ### 3️⃣ **Setup and Test**
 
+````bash
+# Check backend health
+curl http://localhost:8000/api/health
+
+# Register a test user via API
+curl -X POST http://localhost:8000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
 ```bash
 # Check backend health
 curl http://localhost:8000/api/health
@@ -111,23 +135,23 @@ curl http://localhost:8000/api/health
 curl -X POST http://localhost:8000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
-```
+````
 
-**Using the Extension:**
-1. Click the AutoFill Copilot icon in Chrome toolbar
-2. Login with your registered credentials
-3. Go to Options to create your autofill profile
-4. Visit any website with forms
-5. Click "Fill Current Form" to test!
+# Test AI service (Ollama server)
 
 ## 🔧 Service Access
 
-| Service             | URL                              | Description            |
-| ------------------- | -------------------------------- | ---------------------- |
-| 🚀 **Backend API**  | http://localhost:8000            | Main API endpoint      |
-| 💚 **Health Check** | http://localhost:8000/api/health | Service status         |
-| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_backend) |
-| 🔴 **Redis**        | localhost:6379                   | Cache layer            |
+# Run vision/OCR test script (from ai-service folder)
+
+| Service | URL | Description |
+| ------- | --- | ----------- |
+
+| 🚀 **Backend API** | http://localhost:8000 | Main API endpoint |
+| 💚 **Health Check** | http://localhost:8000/api/health | Service status |
+| 🤖 **AI Service** | http://localhost:11434 | Ollama LLM server |
+| 🧪 **Vision Test** | ./ai-service/test_vision_models.sh| Document extraction |
+| 🐘 **PostgreSQL** | localhost:5432 | Database (autofill_backend) |
+| 🔴 **Redis** | localhost:6379 | Cache layer |
 
 ## 🛠️ Development Commands
 
@@ -148,55 +172,66 @@ docker-compose up -d --build
 ## 📡 API Documentation
 
 ### Authentication Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/auth/register` | Register new user |
-| `POST` | `/api/auth/login` | User login |
-| `POST` | `/api/auth/logout` | User logout |
-| `GET` | `/api/auth/profile` | Get authenticated user |
+
+| Method | Endpoint             | Description            |
+| ------ | -------------------- | ---------------------- |
+| `POST` | `/api/auth/register` | Register new user      |
+| `POST` | `/api/auth/login`    | User login             |
+| `POST` | `/api/auth/logout`   | User logout            |
+| `GET`  | `/api/auth/profile`  | Get authenticated user |
 
 ### Profile Management
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/user-profiles` | List user profiles |
-| `POST` | `/api/user-profiles` | Create new profile |
-| `PUT` | `/api/user-profiles/{id}` | Update profile |
-| `DELETE` | `/api/user-profiles/{id}` | Delete profile |
-| `GET` | `/api/users/{id}/default-profile` | Get default profile |
+
+| Method   | Endpoint                          | Description         |
+| -------- | --------------------------------- | ------------------- |
+| `GET`    | `/api/user-profiles`              | List user profiles  |
+| `POST`   | `/api/user-profiles`              | Create new profile  |
+| `PUT`    | `/api/user-profiles/{id}`         | Update profile      |
+| `DELETE` | `/api/user-profiles/{id}`         | Delete profile      |
+| `GET`    | `/api/users/{id}/default-profile` | Get default profile |
 
 ### AutoFill Engine
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/autofill` | Analyze form and get fill suggestions |
-| `POST` | `/api/autofill/analyze` | Analyze form without filling |
+
+| Method | Endpoint                | Description                           |
+| ------ | ----------------------- | ------------------------------------- |
+| `POST` | `/api/autofill`         | Analyze form and get fill suggestions |
+| `POST` | `/api/autofill/analyze` | Analyze form without filling          |
 
 ### Form Mappings
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/form-mappings` | List user's form mappings |
-| `GET` | `/api/form-mappings/by-domain` | Get mappings by domain |
-| `POST` | `/api/form-mappings/{id}/track-usage` | Track mapping usage |
+
+| Method | Endpoint                              | Description               |
+| ------ | ------------------------------------- | ------------------------- |
+| `GET`  | `/api/form-mappings`                  | List user's form mappings |
+| `GET`  | `/api/form-mappings/by-domain`        | Get mappings by domain    |
+| `POST` | `/api/form-mappings/{id}/track-usage` | Track mapping usage       |
 
 ### System
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `GET` | `/api/health` | Service health check |
-| `GET` | `/api/test` | Basic connectivity test |
+
+| Method | Endpoint      | Description             |
+| ------ | ------------- | ----------------------- |
+| `GET`  | `/api/health` | Service health check    |
+| `GET`  | `/api/test`   | Basic connectivity test |
 
 ## 🏗️ System Architecture
 
 ```mermaid
 graph TB
-    A[Chrome Extension] --> B[Backend Service :8000]
-    B --> C[(PostgreSQL)]
-    B --> D[(Redis Cache)]
+  A[Chrome Extension] --> B[Backend Service :8000]
+  B --> C[(PostgreSQL)]
+  B --> D[(Redis Cache)]
+  B --> E[AI Service :11434]
 
-    subgraph "Backend Service"
-        B --> F[Auth Controller]
-        B --> G[Profile Controller]
-        B --> H[AutoFill Controller]
-        B --> I[Form Mapping Controller]
-    end
+  subgraph "Backend Service"
+    B --> F[Auth Controller]
+    B --> G[Profile Controller]
+    B --> H[AutoFill Controller]
+    B --> I[Form Mapping Controller]
+  end
+
+  subgraph "AI Service"
+    E --> J[Ollama LLMs]
+    E --> K[Vision/OCR Pipeline]
+  end
 ```
 
 ## 🔐 Security Features
@@ -219,23 +254,26 @@ graph TB
 ## 🛠️ Technology Stack
 
 ### Backend
-- **Laravel 11** - PHP framework
-- **PHP 8.4** - Programming language
-- **PostgreSQL 15** - Primary database
-- **Redis 7** - Caching and sessions
-- **Laravel Sanctum** - JWT authentication
-- **Docker** - Containerization
+
+-   **Laravel 11** - PHP framework
+-   **PHP 8.4** - Programming language
+-   **PostgreSQL 15** - Primary database
+-   **Redis 7** - Caching and sessions
+-   **Laravel Sanctum** - JWT authentication
+-   **Docker** - Containerization
 
 ### Frontend (Extension)
-- **Chrome Manifest V3** - Extension framework
-- **Vanilla JavaScript** - No framework dependencies
-- **HTML/CSS** - UI components
-- **Chrome APIs** - Extension functionality
+
+-   **Chrome Manifest V3** - Extension framework
+-   **Vanilla JavaScript** - No framework dependencies
+-   **HTML/CSS** - UI components
+-   **Chrome APIs** - Extension functionality
 
 ### Development
-- **Docker Compose** - Local development
-- **Nginx** - Web server
-- **Composer** - PHP dependency management
+
+-   **Docker Compose** - Local development
+-   **Nginx** - Web server
+-   **Composer** - PHP dependency management
 
 ## 🚀 Deployment
 
