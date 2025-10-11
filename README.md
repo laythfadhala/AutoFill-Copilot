@@ -29,11 +29,6 @@
 │   ├── database/       # Migrations and seeders
 │   ├── routes/         # API endpoints
 │   └── docker/         # Docker configuration
-├── ai-service/          # AI model service (Ollama, OCR, vision models)
-│   ├── Dockerfile      # Ollama server and model setup
-│   ├── entrypoint.sh   # Model pull and server start
-│   ├── test_vision_models.sh # Vision/OCR test script
-│   └── test_docs/      # Sample documents for testing
 ├── db/                 # PostgreSQL database container
 ├── redis/              # Redis cache container
 ├── docker-compose.yml  # Container orchestration
@@ -53,7 +48,7 @@ Browser extension that provides:
 -   📊 **Form Counting**: Tracks detected forms across websites
 -   ⚙️ **User-Friendly UI**: Clean popup interface and options page
 
-### 🚀 Backend Service (Laravel 11)
+### 🚀 Backend Service (Laravel 12)
 
 RESTful API service providing:
 
@@ -62,15 +57,6 @@ RESTful API service providing:
 -   🎯 **AutoFill Engine**: Intelligent field mapping and form analysis
 -   🗂️ **Form Mapping**: Domain-specific form learning and optimization
 -   🛡️ **Security**: Input validation, rate limiting, and secure data handling
-
-### 🤖 AI Service (Ollama, Vision, OCR)
-
-AI microservice for document analysis and vision models:
-
--   🧠 **Ollama Model Server**: Runs LLMs for text and vision tasks
--   🖼️ **Vision/OCR Pipeline**: Converts PDFs/images to text using Tesseract OCR
--   🧪 **Test Scripts**: `test_vision_models.sh` for automated document extraction
--   📂 **Sample Docs**: `test_docs/` folder for real-world testing
 
 ### 🗄️ Infrastructure
 
@@ -137,21 +123,14 @@ curl -X POST http://localhost:8000/api/auth/register \
   -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
 ````
 
-# Test AI service (Ollama server)
-
 ## 🔧 Service Access
 
-# Run vision/OCR test script (from ai-service folder)
-
-| Service | URL | Description |
-| ------- | --- | ----------- |
-
-| 🚀 **Backend API** | http://localhost:8000 | Main API endpoint |
-| 💚 **Health Check** | http://localhost:8000/api/health | Service status |
-| 🤖 **AI Service** | http://localhost:11434 | Ollama LLM server |
-| 🧪 **Vision Test** | ./ai-service/test_vision_models.sh| Document extraction |
-| 🐘 **PostgreSQL** | localhost:5432 | Database (autofill_backend) |
-| 🔴 **Redis** | localhost:6379 | Cache layer |
+| Service             | URL                              | Description                 |
+| ------------------- | -------------------------------- | --------------------------- |
+| 🚀 **Backend API**  | http://localhost:8000            | Main API endpoint           |
+| 💚 **Health Check** | http://localhost:8000/api/health | Service status              |
+| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_backend) |
+| 🔴 **Redis**        | localhost:6379                   | Cache layer                 |
 
 ## 🛠️ Development Commands
 
@@ -219,18 +198,12 @@ graph TB
   A[Chrome Extension] --> B[Backend Service :8000]
   B --> C[(PostgreSQL)]
   B --> D[(Redis Cache)]
-  B --> E[AI Service :11434]
 
   subgraph "Backend Service"
     B --> F[Auth Controller]
     B --> G[Profile Controller]
     B --> H[AutoFill Controller]
     B --> I[Form Mapping Controller]
-  end
-
-  subgraph "AI Service"
-    E --> J[Ollama LLMs]
-    E --> K[Vision/OCR Pipeline]
   end
 ```
 

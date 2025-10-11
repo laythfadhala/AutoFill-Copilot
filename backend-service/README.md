@@ -41,8 +41,6 @@ app/
 │   ├── UserProfile.php      # Profile data model
 │   └── FormMapping.php      # Form mapping model
 ├── Services/                # Business Logic
-│   ├── ServiceCommunicator.php   # Inter-service communication
-│   └── CircuitBreaker.php        # Resilience patterns
 └── Providers/               # Service Providers
     └── AppServiceProvider.php
 ```

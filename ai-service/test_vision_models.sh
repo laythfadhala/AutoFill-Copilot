@@ -101,9 +101,6 @@ make_request() {
       ]
     }")
 
-
-
-
   local end_time=$(date +%s.%N)
   local total_time=$(echo "$end_time - $start_time" | bc -l)
 

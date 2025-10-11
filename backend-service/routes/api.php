@@ -18,26 +18,7 @@ use App\Http\Controllers\Api\FormMappingController;
 |
 */
 
-// Test endpoint
-Route::get('/test', function () {
-    return response()->json([
-        'message' => 'AutoFill Backend Service',
-        'timestamp' => now()->toISOString(),
-        'status' => 'ok'
-    ]);
-});
-
-// Health check endpoint
-Route::get('/health', function () {
-    return response()->json([
-        'status' => 'ok',
-        'service' => 'backend-service',
-        'timestamp' => now()->toISOString(),
-        'version' => '1.0.0'
-    ]);
-});
-
-// CORS preflight for browser extension
+// CORS preflight to make browser extension happy
 Route::options('/{any}', function () {
     return response('', 200);
 })->where('any', '.*');
