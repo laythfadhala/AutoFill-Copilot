@@ -11,13 +11,15 @@
 *.pid.lock
 *.tmp
 .env.local
-.env.production
+.env
 
 # =============================================================================
 # Docker & Containers
 # =============================================================================
 .docker/
 docker-compose.override.yml
+ai-service/.env
+ai-service/test_docs
 .dockerignore
 docker/data/
 docker/logs/

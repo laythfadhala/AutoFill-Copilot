@@ -5,41 +5,53 @@ services:
     container_name: autofill-backend-service
     ports:
       - "8000:8000"
-    environment:
-      - APP_ENV=development
-      - DB_CONNECTION=pgsql
-      - DB_HOST=db
-      - DB_DATABASE=autofill_backend
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=password
-      - APP_KEY=base64:$(openssl rand -base64 32)
+    env_file:
+      - ./backend-service/.env
     volumes:
       - ./backend-service:/var/www/html
     depends_on:
-      - db
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - autofill-network
+
+  # AI Service - Ollama for local LLM inference
+  ai-service:
+    build: ./ai-service
+    container_name: autofill-ai-service
+    ports:
+      - "11434:11434"
+    env_file:
+      - ./ai-service/.env
+    volumes:
+      - ollama_data:/root/.ollama
     networks:
       - autofill-network
 
   # Database - PostgreSQL
   db:
-    image: postgres:15-alpine
+    build: ./db
     container_name: autofill-db
-    environment:
-      - POSTGRES_DB=autofill_backend
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+    env_file:
+      - ./db/.env
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./database/init:/docker-entrypoint-initdb.d
+      # - ./database/init:/docker-entrypoint-initdb.d # When it initializes a new, empty database, it will automatically run any .sql, .sql.gz, or .sh files found in that folder.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d autofill_backend"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - autofill-network
 
   # Redis - Caching and sessions
   redis:
-    image: redis:7-alpine
+    build: ./redis
     container_name: autofill-redis
     ports:
       - "6379:6379"
@@ -52,6 +64,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  ollama_data:
 
 networks:
   autofill-network:
