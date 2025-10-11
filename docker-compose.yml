@@ -17,19 +17,6 @@ services:
     networks:
       - autofill-network
 
-  # AI Service - Ollama for local LLM inference
-  ai-service:
-    build: ./ai-service
-    container_name: autofill-ai-service
-    ports:
-      - "11434:11434"
-    env_file:
-      - ./ai-service/.env
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - autofill-network
-
   # Database - PostgreSQL
   db:
     build: ./db
@@ -64,7 +51,6 @@ services:
 volumes:
   postgres_data:
   redis_data:
-  ollama_data:
 
 networks:
   autofill-network:

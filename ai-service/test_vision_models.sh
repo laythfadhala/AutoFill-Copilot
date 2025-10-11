@@ -30,7 +30,7 @@ if [[ "$MIME_TYPE" == "application/pdf" ]]; then
   TMP_IMG_DIR=$(mktemp -d)
 
   # Convert each PDF page to PNG at 400 DPI for accurate OCR
-  pdftoppm -r 500 -gray -aa no "$FILE_PATH" "$TMP_IMG_DIR/page" -png >/dev/null 2>&1
+  pdftoppm -r 100 -gray -aa no "$FILE_PATH" "$TMP_IMG_DIR/page" -png >/dev/null 2>&1
 
   echo "🔍 Running OCR on images..."
   TEXT=""
