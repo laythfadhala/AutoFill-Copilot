@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'together' => [
+        'url' => env('TOGETHER_API_URL', 'https://api.together.xyz/v1/chat/completions'),
+        'key' => env('TOGETHER_API_KEY'),
+        'model' => env('TOGETHER_DEFAULT_MODEL', 'meta-llama/Llama-3.3-70B-Instruct-Turbo-Free'),
+    ],
+
 ];

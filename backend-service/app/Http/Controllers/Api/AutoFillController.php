@@ -5,12 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Models\FormMapping;
+use App\Services\TogetherAIService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Validator;
 
 class AutoFillController extends Controller
 {
+    private TogetherAIService $aiService;
+
+    public function __construct(TogetherAIService $aiService)
+    {
+        $this->aiService = $aiService;
+    }
     /**
      * Main autofill endpoint - analyzes form and returns suggested data
      *
@@ -335,5 +342,46 @@ class AutoFillController extends Controller
                 'confidence' => $mapping['confidence']
             ];
         })->toArray();
+    }
+
+    /**
+     * AI-powered form analysis endpoint
+     */
+    public function analyzeWithAi(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'form_fields' => 'required|array',
+            'form_fields.*.name' => 'required|string',
+            'form_fields.*.type' => 'sometimes|string',
+            'form_fields.*.placeholder' => 'sometimes|string'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $formFields = $request->form_fields;
+
+        // Use AI service to analyze form fields
+        $aiResult = $this->aiService->analyzeForm($formFields);
+
+        if (!$aiResult['success']) {
+            return response()->json([
+                'success' => false,
+                'message' => 'AI analysis failed',
+                'error' => $aiResult['error']
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return response()->json([
+            'success' => true,
+            'analysis' => $aiResult['content'],
+            'usage' => $aiResult['usage'] ?? null,
+            'model' => $aiResult['model']
+        ]);
     }
 }

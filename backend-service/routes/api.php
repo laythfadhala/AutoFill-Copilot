@@ -60,4 +60,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // AutoFill endpoints
     Route::post('/autofill', [AutoFillController::class, 'autofill']);
     Route::post('/autofill/analyze', [AutoFillController::class, 'analyzeForm']);
+    Route::post('/autofill/analyze-ai', [AutoFillController::class, 'analyzeWithAi']);
 });

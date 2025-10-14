@@ -55,6 +55,7 @@ RESTful API service providing:
 -   🔐 **Authentication**: JWT tokens with Laravel Sanctum
 -   👤 **Profile Management**: JSON-based user profile storage
 -   🎯 **AutoFill Engine**: Intelligent field mapping and form analysis
+-   🤖 **AI Integration**: Together.xyz API for enhanced form understanding
 -   🗂️ **Form Mapping**: Domain-specific form learning and optimization
 -   🛡️ **Security**: Input validation, rate limiting, and secure data handling
 
@@ -171,10 +172,11 @@ docker-compose up -d --build
 
 ### AutoFill Engine
 
-| Method | Endpoint                | Description                           |
-| ------ | ----------------------- | ------------------------------------- |
-| `POST` | `/api/autofill`         | Analyze form and get fill suggestions |
-| `POST` | `/api/autofill/analyze` | Analyze form without filling          |
+| Method | Endpoint                   | Description                           |
+| ------ | -------------------------- | ------------------------------------- |
+| `POST` | `/api/autofill`            | Analyze form and get fill suggestions |
+| `POST` | `/api/autofill/analyze`    | Analyze form without filling          |
+| `POST` | `/api/autofill/analyze-ai` | AI-powered form analysis              |
 
 ### Form Mappings
 

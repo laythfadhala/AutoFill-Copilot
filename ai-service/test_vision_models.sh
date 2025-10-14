@@ -30,14 +30,14 @@ if [[ "$MIME_TYPE" == "application/pdf" ]]; then
   TMP_IMG_DIR=$(mktemp -d)
 
   # Convert each PDF page to PNG at 400 DPI for accurate OCR
-  pdftoppm -r 100 -gray -aa no "$FILE_PATH" "$TMP_IMG_DIR/page" -png >/dev/null 2>&1
+  pdftoppm -r 200 -gray -aa no "$FILE_PATH" "$TMP_IMG_DIR/page" -png >/dev/null 2>&1
 
   echo "🔍 Running OCR on images..."
   TEXT=""
   for IMG in "$TMP_IMG_DIR"/*.png; do
     [[ -f "$IMG" ]] || continue
     echo "📄 OCR: $(basename "$IMG")"
-    PAGE_TEXT=$(tesseract "$IMG" stdout -l eng+deu 2>/dev/null || true)
+    PAGE_TEXT=$(tesseract "$IMG" stdout -l eng+deu+ara 2>/dev/null || true)
 
     TEXT+="$PAGE_TEXT"$'\n'
   done
@@ -45,12 +45,14 @@ if [[ "$MIME_TYPE" == "application/pdf" ]]; then
   rm -rf "$TMP_IMG_DIR"
   MODEL="$TEXT_MODEL"
   PROMPT="Extract only factual data from the document and return a single valid, compact JSON object.
-    Keep strictly:
+    Keep strictly all:
     - Names, addresses, dates, numbers, IDs, tax data, recipients, costs, rates, percentages, amounts, money, and contact or banking details.
     Remove completely:
     - Any paragraphs or sentences explaining reasons, laws, legal rights, appeals, data protection, privacy, or instructions.
     Formatting rules:
-    - Flatten the structure into simple keys (camelCase or snake_case).
+    - Response must be in the same language as the document including the keys.
+    - Response must always have 'Title' of the document.
+    - Flatten the structure into one dimension key:value.
     - Output only raw JSON, no markdown or text, no explanations.
 
     \n$TEXT"
@@ -98,7 +100,9 @@ make_request() {
           \"role\": \"user\",
           \"content\": $ESCAPED_PROMPT
         }
-      ]
+      ],
+      \"max_tokens\": 2000,
+      \"temperature\": 0.2
     }")
 
   local end_time=$(date +%s.%N)
