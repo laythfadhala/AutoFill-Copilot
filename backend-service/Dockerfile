@@ -15,7 +15,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     tesseract-ocr \
     tesseract-ocr-deu \
-    tesseract-ocr-ara
+    tesseract-ocr-ara \
+    supervisor
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -40,6 +41,12 @@ RUN composer install --no-dev --optimize-autoloader
 
 # Copy nginx configuration
 COPY docker/nginx.conf /etc/nginx/sites-available/default
+
+# Copy custom PHP configuration
+COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Copy supervisor configuration
+COPY docker/supervisor-queue.conf /etc/supervisor/conf.d/queue-worker.conf
 
 # Create Laravel storage and bootstrap cache directories
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache

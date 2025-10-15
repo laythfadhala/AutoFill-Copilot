@@ -21,7 +21,7 @@ class TogetherAIService
         - Response must be in the same language as the document including the keys.
         - Response must always have 'Title' of the document.
         - Flatten the structure into one dimension key:value.
-        - Output only raw JSON, no markdown or text, no explanations.
+        - Output only raw valid JSON, no markdown or text, no explanations.
         PROMPT;
     private string $apiUrl;
     private ?string $apiKey;
@@ -39,114 +39,311 @@ class TogetherAIService
     }
 
     /**
-     * Generate a chat completion using the AI model with a unified prompt for all file types
-     * @param string $extractedText Text extracted from the file (OCR or raw)
-     * @param array $options Optional model options
+     * Clean markdown code blocks from AI response and extract JSON
      */
-    public function generateCompletion(
-        string $extractedText,
-        array $options = []
-    ): array {
-        if (!$this->apiKey) {
-            return [
-                'success' => false,
-                'error' => 'AI service not configured - API key missing'
-            ];
+    private function cleanMarkdownCodeBlocks(string $content): string
+    {
+        // Find the first '{' and last '}' to extract JSON content
+        $startPos = strpos($content, '{');
+        $endPos = strrpos($content, '}');
+
+        if ($startPos !== false && $endPos !== false && $endPos > $startPos) {
+            $jsonContent = substr($content, $startPos, $endPos - $startPos + 1);
+            return trim($jsonContent);
         }
 
+        // Fallback: remove markdown code blocks if JSON extraction fails
+        $content = preg_replace('/^```(?:json)?\s*$/m', '', $content);
+        $content = preg_replace('/^```\s*$/m', '', $content);
+
+        // Trim whitespace
+        return trim($content);
+    }
+
+    /**
+     * Process a document file and extract data using AI
+     * @param string $filePath Path to the uploaded file
+     * @return array Extracted data from the document
+     */
+    public function processDocument(string $filePath): array
+    {
         try {
-            $prompt = self::EXTRACTION_PROMPT . $extractedText;
-
-            $payload = [
-                'model' => $options['model'] ?? $this->defaultModel,
-                'messages' => [
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
-                'max_tokens' => $options['max_tokens'] ?? 2000,
-                'temperature' => $options['temperature'] ?? 0.2,
-            ];
-
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->timeout(30)->post($this->apiUrl, $payload);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                Log::info('AI completion generated successfully', [
-                    'model' => $payload['model'],
-                    'prompt_length' => strlen($prompt),
-                    'response_length' => strlen($data['choices'][0]['message']['content'] ?? ''),
-                ]);
-
+            // Check if API key is available
+            if (!$this->apiKey) {
                 return [
-                    'success' => true,
-                    'content' => $data['choices'][0]['message']['content'] ?? '',
-                    'usage' => $data['usage'] ?? null,
-                    'model' => $data['model'] ?? $payload['model'],
-                ];
-            } else {
-                Log::error('AI service request failed', [
-                    'status' => $response->status(),
-                    'body' => $response->body(),
-                ]);
-
-                return [
+                    'error' => 'AI service not configured. Please set TOGETHER_API_KEY in your .env file.',
                     'success' => false,
-                    'error' => 'AI service request failed: ' . $response->status(),
+                    'error_type' => 'configuration'
                 ];
             }
-        } catch (Exception $e) {
-            Log::error('AI service exception', [
-                'error' => $e->getMessage(),
-            ]);
+
+            // Check if file exists
+            if (!file_exists($filePath)) {
+                return [
+                    'error' => 'File not found: ' . basename($filePath),
+                    'success' => false,
+                    'error_type' => 'file_not_found'
+                ];
+            }
+
+            // Get MIME type
+            $mimeType = mime_content_type($filePath);
+            Log::info('Processing file', ['file' => basename($filePath), 'mime_type' => $mimeType]);
+
+            // Extract text based on file type
+            $text = $this->extractText($filePath, $mimeType);
+
+            if (empty($text)) {
+                return [
+                    'error' => 'Could not extract text from file. The file might be corrupted, empty, or in an unsupported format.',
+                    'success' => false,
+                    'error_type' => 'text_extraction_failed'
+                ];
+            }
+
+            // Send to AI API
+            $response = $this->callTogetherAI($text);
 
             return [
+                'success' => true,
+                'data' => $response,
+                'raw_content' => $response
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Document processing failed', [
+                'file' => $filePath,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'error' => 'Document processing failed: ' . $e->getMessage(),
                 'success' => false,
-                'error' => 'AI service error: ' . $e->getMessage(),
+                'error_type' => 'processing_error'
             ];
         }
     }
 
     /**
-     * Analyze form data using AI with optimized settings for predictability
+     * Call TogetherAI API with extracted text
      */
+    private function callTogetherAI(string $text): string
+    {
+        $prompt = self::EXTRACTION_PROMPT . "\n" . $text;
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Content-Type' => 'application/json',
+        ])->timeout(30)->post($this->apiUrl, [
+            'model' => $this->defaultModel,
+            'messages' => [
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
+            ],
+            'max_tokens' => 2000,
+            'temperature' => 0.2
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $content = $data['choices'][0]['message']['content'] ?? '';
+
+            // Clean markdown code blocks from response
+            $content = $this->cleanMarkdownCodeBlocks($content);
+
+            Log::info('AI response received', ['length' => strlen($content)]);
+            return $content;
+        } else {
+            Log::error('AI API request failed', ['status' => $response->status(), 'body' => $response->body()]);
+            throw new Exception('AI API request failed: ' . $response->status());
+        }
+    }
+
+    /**
+     * Extract text from file based on MIME type
+     */
+    private function extractText(string $filePath, string $mimeType): string
+    {
+        if ($mimeType === 'application/pdf') {
+            return $this->extractTextFromPdf($filePath);
+        } elseif (str_starts_with($mimeType, 'image/')) {
+            return $this->extractTextFromImage($filePath);
+        } elseif ($mimeType === 'text/plain') {
+            return file_get_contents($filePath);
+        } else {
+            Log::warning('Unsupported file type', ['mime_type' => $mimeType]);
+            return '';
+        }
+    }
+
+    /**
+     * Extract text from PDF using pdftoppm and tesseract
+     */
+    private function extractTextFromPdf(string $filePath): string
+    {
+        try {
+            Log::info('Converting PDF to images for OCR');
+
+            // Check if required tools are available
+            if (!$this->isCommandAvailable('pdftoppm')) {
+                throw new Exception('PDF processing tool (pdftoppm) is not installed. Please install poppler-utils package.');
+            }
+
+            if (!$this->isCommandAvailable('tesseract')) {
+                throw new Exception('OCR tool (tesseract) is not installed. Please install tesseract-ocr package.');
+            }
+
+            // Check if file is readable
+            if (!is_readable($filePath)) {
+                throw new Exception('PDF file is not readable or accessible.');
+            }
+
+            // Check file size (PDFs over 50MB might cause issues)
+            $fileSize = filesize($filePath);
+            if ($fileSize > 50 * 1024 * 1024) { // 50MB
+                throw new Exception('PDF file is too large (over 50MB). Please use a smaller file or compress the PDF.');
+            }
+
+            // Create temp directory
+            $tmpDir = sys_get_temp_dir() . '/pdf_' . uniqid();
+            if (!mkdir($tmpDir, 0755, true)) {
+                throw new Exception('Could not create temporary directory for PDF processing.');
+            }
+
+            // Convert PDF to images with error checking
+            $cmd = "pdftoppm -r 200 -gray -aa no \"$filePath\" \"$tmpDir/page\" -png 2>&1";
+            $output = shell_exec($cmd);
+
+            if ($output !== null && stripos($output, 'error') !== false) {
+                throw new Exception('PDF conversion failed. The PDF might be corrupted or password-protected. Error: ' . trim($output));
+            }
+
+            $images = glob("$tmpDir/*.png");
+            if (empty($images)) {
+                throw new Exception('PDF conversion produced no images. The PDF might be empty or corrupted.');
+            }
+
+            $text = '';
+            $processedPages = 0;
+
+            foreach ($images as $img) {
+                if (!file_exists($img)) continue;
+
+                Log::info('OCR processing page', ['page' => basename($img)]);
+                $pageText = shell_exec("tesseract \"$img\" stdout -l eng+deu+ara 2>&1");
+
+                // Check for tesseract errors
+                if ($pageText && stripos($pageText, 'error') !== false) {
+                    Log::warning('Tesseract error on page', ['page' => basename($img), 'error' => $pageText]);
+                    continue; // Skip this page but continue with others
+                }
+
+                $text .= $pageText . "\n";
+                $processedPages++;
+            }
+
+            // Cleanup
+            array_map('unlink', glob("$tmpDir/*"));
+            rmdir($tmpDir);
+
+            if (empty(trim($text))) {
+                throw new Exception('No text could be extracted from the PDF. It might contain only images without OCR text, or the quality might be too poor.');
+            }
+
+            Log::info('PDF processing completed', ['pages_processed' => $processedPages, 'text_length' => strlen($text)]);
+            return trim($text);
+
+        } catch (Exception $e) {
+            Log::error('PDF processing failed', ['error' => $e->getMessage(), 'file' => basename($filePath)]);
+
+            // Cleanup temp directory if it exists
+            if (isset($tmpDir) && is_dir($tmpDir)) {
+                array_map('unlink', glob("$tmpDir/*"));
+                @rmdir($tmpDir);
+            }
+
+            throw $e; // Re-throw to be caught by caller
+        }
+    }
+
+    /**
+     * Check if a command is available on the system
+     */
+    private function isCommandAvailable(string $command): bool
+    {
+        $which = shell_exec("which $command 2>/dev/null");
+        return !empty(trim($which));
+    }
+
+    /**
+     * Extract text from image using tesseract
+     */
+    private function extractTextFromImage(string $filePath): string
+    {
+        try {
+            Log::info('Running OCR on image');
+
+            // Check if tesseract is available
+            if (!$this->isCommandAvailable('tesseract')) {
+                throw new Exception('OCR tool (tesseract) is not installed. Please install tesseract-ocr package.');
+            }
+
+            // Check if file is readable
+            if (!is_readable($filePath)) {
+                throw new Exception('Image file is not readable or accessible.');
+            }
+
+            // Check file size (images over 20MB might cause issues)
+            $fileSize = filesize($filePath);
+            if ($fileSize > 20 * 1024 * 1024) { // 20MB
+                throw new Exception('Image file is too large (over 20MB). Please use a smaller image or compress it.');
+            }
+
+            $text = shell_exec("tesseract \"$filePath\" stdout -l eng+deu+ara 2>&1");
+
+            // Check for tesseract errors
+            if ($text && stripos($text, 'error') !== false) {
+                throw new Exception('OCR processing failed. The image might be corrupted or in an unsupported format. Error: ' . trim($text));
+            }
+
+            $trimmedText = trim($text ?: '');
+
+            if (empty($trimmedText)) {
+                throw new Exception('No text could be extracted from the image. It might not contain readable text, or the quality might be too poor.');
+            }
+
+            Log::info('Image OCR completed', ['text_length' => strlen($trimmedText)]);
+            return $trimmedText;
+
+        } catch (Exception $e) {
+            Log::error('Image OCR failed', ['error' => $e->getMessage(), 'file' => basename($filePath)]);
+            throw $e; // Re-throw to be caught by caller
+        }
+    }
+    public function generateCompletion(string $extractedText, array $options = []): array
+    {
+        try {
+            $response = $this->callTogetherAI($extractedText);
+            return [
+                'success' => true,
+                'content' => $response,
+                'usage' => null,
+                'model' => $this->defaultModel,
+            ];
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
+        }
+    }
+
     public function analyzeForm(array $formData): array
     {
-        $prompt = $this->buildFormAnalysisPrompt($formData);
-
-        return $this->generateCompletion($prompt, [
-            'max_tokens' => 500,
-            'temperature' => 0.1, // Very low for maximum consistency
-            'top_p' => 0.1,       // Very focused token selection
-            'top_k' => 10,        // Limit to top 10 tokens
-            'seed' => 42,         // Fixed seed for reproducible results
-        ]);
+        return $this->generateCompletion(json_encode($formData));
     }
 
-    /**
-     * Build a prompt for form analysis
-     */
-    private function buildFormAnalysisPrompt(array $formData): string
-    {
-        $fields = json_encode($formData, JSON_PRETTY_PRINT);
-
-        return <<<PROMPT
-            Analyze the following form fields and suggest appropriate data to fill them. Consider common form patterns and provide realistic, context-appropriate values.
-
-            Form fields:
-            {$fields}
-
-            Please provide suggestions in JSON format with field names as keys and suggested values as values. Only include fields that can be reasonably filled with user data.
-            PROMPT;
-    }
-
-    /**
-     * Check if the AI service is available
-     */
     public function isAvailable(): bool
     {
         if (!$this->apiKey) {
@@ -160,222 +357,28 @@ class TogetherAIService
 
             return $response->successful();
         } catch (Exception $e) {
-            Log::warning('AI service availability check failed', ['error' => $e->getMessage()]);
             return false;
         }
     }
 
     /**
-     * Process a document file and extract data using AI
-     * @param string $filePath Path to the uploaded file
-     * @return array Extracted data from the document
+     * Process AI response (simplified)
      */
-    public function processDocument(string $filePath): array
+    private function processAiResponse(array $aiResponse): array
     {
-        try {
-            // Check if API key is available
-            if (!$this->apiKey) {
-                Log::warning('TogetherAI API key not configured');
-                return ['error' => 'AI service not configured. Please set TOGETHER_API_KEY in your .env file.'];
-            }
-
-            // Get MIME type
-            $mimeType = mime_content_type($filePath);
-
-            // Prepare data depending on file type
-            if ($mimeType === 'application/pdf') {
-                Log::info('Processing PDF file', ['file' => basename($filePath)]);
-                $extractedText = $this->extractTextFromPdf($filePath);
-
-                if (empty($extractedText)) {
-                    return ['error' => 'Could not extract text from PDF'];
-                }
-
-                return $this->generateCompletion($extractedText);
-
-            } elseif (str_starts_with($mimeType, 'image/')) {
-                Log::info('Processing image file', ['file' => basename($filePath)]);
-                $ocrText = $this->extractTextFromImage($filePath);
-
-                if (empty($ocrText)) {
-                    return ['error' => 'Could not extract text from image'];
-                }
-
-                return $this->generateCompletion($ocrText);
-
-            } elseif ($mimeType === 'text/plain') {
-                Log::info('Processing text file', ['file' => basename($filePath)]);
-                $text = file_get_contents($filePath);
-
-                if (empty($text)) {
-                    return ['error' => 'Could not read text file'];
-                }
-
-                return $this->generateCompletion($text);
-
-            } else {
-                Log::warning('Unsupported file type', ['mime_type' => $mimeType, 'file' => basename($filePath)]);
-                return ['error' => 'Unsupported file type: ' . $mimeType];
-            }
-
-        } catch (Exception $e) {
-            Log::error('Document processing failed', [
-                'file' => $filePath,
-                'error' => $e->getMessage()
-            ]);
-            return ['error' => 'Document processing failed: ' . $e->getMessage()];
+        if (!isset($aiResponse['success']) || !$aiResponse['success']) {
+            return [
+                'success' => false,
+                'error' => $aiResponse['error'] ?? 'AI service error',
+                'raw_content' => $aiResponse['content'] ?? ''
+            ];
         }
-    }
 
-    /**
-     * Extract text from various file types
-     * @param string $filePath Path to the file
-     * @return string Extracted text
-     */
-    private function extractTextFromFile(string $filePath): string
-    {
-        $mimeType = mime_content_type($filePath);
-
-        if ($mimeType === 'application/pdf') {
-            return $this->extractTextFromPdf($filePath);
-        } elseif (str_starts_with($mimeType, 'image/')) {
-            return $this->extractTextFromImage($filePath);
-        } elseif ($mimeType === 'text/plain') {
-            return file_get_contents($filePath);
-        } else {
-            return 'Document: ' . basename($filePath);
-        }
-    }
-
-    /**
-     * Extract text from PDF files using pdftoppm and tesseract OCR
-     * @param string $filePath Path to PDF file
-     * @return string Extracted text
-     */
-    private function extractTextFromPdf(string $filePath): string
-    {
-        try {
-            Log::info('Converting PDF to images for OCR', ['file' => basename($filePath)]);
-
-            // Create temporary directory for images
-            $tmpImgDir = sys_get_temp_dir() . '/pdf_images_' . uniqid();
-            if (!mkdir($tmpImgDir, 0755, true)) {
-                throw new Exception('Could not create temporary directory for PDF processing');
-            }
-
-            // Convert each PDF page to PNG at 200 DPI (matching the workflow)
-            $output = shell_exec("pdftoppm -r 200 -gray -aa no \"$filePath\" \"$tmpImgDir/page\" -png 2>/dev/null");
-            if ($output === null) {
-                Log::warning('pdftoppm command failed or not found');
-                // Fallback to basic text extraction
-                return $this->extractTextFromPdfFallback($filePath);
-            }
-
-            Log::info('Running OCR on PDF images');
-
-            $text = '';
-            $imageFiles = glob("$tmpImgDir/*.png");
-
-            foreach ($imageFiles as $img) {
-                if (!file_exists($img)) continue;
-
-                Log::info('OCR processing page', ['page' => basename($img)]);
-
-                // Run tesseract with eng+deu+ara languages (matching the workflow)
-                // Force UTF-8 output
-                $pageText = shell_exec("tesseract \"$img\" stdout -l eng+deu+ara 2>/dev/null | iconv -f utf-8 -t utf-8 -c");
-
-                if ($pageText) {
-                    $text .= $pageText . "\n";
-                }
-            }
-
-            // Clean up temporary directory
-            $this->cleanupDirectory($tmpImgDir);
-
-            if (empty(trim($text))) {
-                Log::warning('No text extracted from PDF via OCR');
-                return $this->extractTextFromPdfFallback($filePath);
-            }
-
-            // Ensure UTF-8 encoding
-            $text = mb_convert_encoding($text, 'UTF-8', 'auto');
-            return trim($text);
-
-        } catch (Exception $e) {
-            Log::error('PDF OCR processing failed', ['error' => $e->getMessage()]);
-            return $this->extractTextFromPdfFallback($filePath);
-        }
-    }
-
-    /**
-     * Fallback PDF text extraction (basic implementation)
-     */
-    private function extractTextFromPdfFallback(string $filePath): string
-    {
-        try {
-            $content = file_get_contents($filePath);
-
-            // Simple text extraction - look for text between streams
-            if (preg_match_all('/BT\s*(.*?)\s*ET/s', $content, $matches)) {
-                return implode(' ', $matches[1]);
-            }
-
-            return 'PDF Document: ' . basename($filePath);
-
-        } catch (Exception $e) {
-            Log::warning('PDF fallback extraction failed', ['error' => $e->getMessage()]);
-            return 'PDF Document: ' . basename($filePath);
-        }
-    }
-
-    /**
-     * Extract text from image files using tesseract OCR
-     * @param string $filePath Path to image file
-     * @return string Extracted text
-     */
-    private function extractTextFromImage(string $filePath): string
-    {
-        try {
-            Log::info('Running OCR on image file', ['file' => basename($filePath)]);
-
-            // Run tesseract with eng+deu languages (matching the workflow)
-            // Force UTF-8 output
-            $ocrText = shell_exec("tesseract \"$filePath\" stdout -l eng+deu 2>/dev/null | iconv -f utf-8 -t utf-8 -c");
-
-            if ($ocrText && trim($ocrText) !== '') {
-                Log::info('OCR text extracted successfully');
-                // Ensure UTF-8 encoding
-                $ocrText = mb_convert_encoding($ocrText, 'UTF-8', 'auto');
-                return trim($ocrText);
-            } else {
-                Log::warning('No text extracted from image via OCR');
-                return '';
-            }
-
-        } catch (Exception $e) {
-            Log::error('Image OCR processing failed', ['error' => $e->getMessage()]);
-            return '';
-        }
-    }
-
-    /**
-     * Clean up temporary directory
-     */
-    private function cleanupDirectory(string $dir): void
-    {
-        try {
-            if (is_dir($dir)) {
-                $files = glob($dir . '/*');
-                foreach ($files as $file) {
-                    if (is_file($file)) {
-                        unlink($file);
-                    }
-                }
-                rmdir($dir);
-            }
-        } catch (Exception $e) {
-            Log::warning('Failed to cleanup temporary directory', ['dir' => $dir, 'error' => $e->getMessage()]);
-        }
+        return [
+            'success' => true,
+            'data' => $aiResponse['content'] ?? '',
+            'usage' => $aiResponse['usage'] ?? null,
+            'model' => $aiResponse['model'] ?? null
+        ];
     }
 }

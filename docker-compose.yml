@@ -3,6 +3,7 @@ services:
   backend-service:
     build: ./backend-service
     container_name: autofill-backend-service
+    restart: always
     ports:
       - "8000:8000"
     env_file:
@@ -21,6 +22,7 @@ services:
   db:
     build: ./db
     container_name: autofill-db
+    restart: always
     env_file:
       - ./db/.env
     ports:
@@ -36,10 +38,29 @@ services:
     networks:
       - autofill-network
 
+  # Queue Worker - Process background jobs
+  queue-worker:
+    build: ./backend-service
+    container_name: autofill-queue-worker
+    restart: always
+    env_file:
+      - ./backend-service/.env
+    volumes:
+      - ./backend-service:/var/www/html
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - autofill-network
+    command: supervisord -n -c /etc/supervisor/supervisord.conf
+
   # Redis - Caching and sessions
   redis:
     build: ./redis
     container_name: autofill-redis
+    restart: always
     ports:
       - "6379:6379"
     networks:
