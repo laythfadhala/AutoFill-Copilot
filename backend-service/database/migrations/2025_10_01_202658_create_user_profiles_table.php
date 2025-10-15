@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('name'); // Profile name (e.g., "Personal", "Work")
             $table->string('type')->default('personal'); // personal, business, etc.
-            $table->json('data'); // JSON data with user information
+            $table->jsonb('data'); // JSON data with user information
             $table->boolean('is_default')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
