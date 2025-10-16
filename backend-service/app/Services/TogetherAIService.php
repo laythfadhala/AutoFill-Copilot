@@ -21,7 +21,7 @@ class TogetherAIService
         - Response must be in the same language as the document including the keys.
         - Response must always have 'Title' of the document.
         - Flatten the structure into one dimension key:value.
-        - Output only raw valid JSON, no markdown or text, no explanations.
+        - Output only flattened raw valid JSON, no markdown or text, no explanations, no white spaces.
         PROMPT;
     private string $apiUrl;
     private ?string $apiKey;
@@ -43,6 +43,10 @@ class TogetherAIService
      */
     private function cleanMarkdownCodeBlocks(string $content): string
     {
+        // Remove ```json or ``` markers
+        $content = preg_replace('/^```(?:json)?\s*$/m', '', $content);
+        $content = preg_replace('/^```\s*$/m', '', $content);
+
         // Find the first '{' and last '}' to extract JSON content
         $startPos = strpos($content, '{');
         $endPos = strrpos($content, '}');
@@ -51,10 +55,6 @@ class TogetherAIService
             $jsonContent = substr($content, $startPos, $endPos - $startPos + 1);
             return trim($jsonContent);
         }
-
-        // Fallback: remove markdown code blocks if JSON extraction fails
-        $content = preg_replace('/^```(?:json)?\s*$/m', '', $content);
-        $content = preg_replace('/^```\s*$/m', '', $content);
 
         // Trim whitespace
         return trim($content);
@@ -156,7 +156,7 @@ class TogetherAIService
             return $content;
         } else {
             Log::error('AI API request failed', ['status' => $response->status(), 'body' => $response->body()]);
-            throw new Exception('AI API request failed: ' . $response->status());
+            throw new Exception('AI API request failed with status ' . $response->status() . ': ' . $response->body());
         }
     }
 
@@ -342,43 +342,5 @@ class TogetherAIService
     public function analyzeForm(array $formData): array
     {
         return $this->generateCompletion(json_encode($formData));
-    }
-
-    public function isAvailable(): bool
-    {
-        if (!$this->apiKey) {
-            return false;
-        }
-
-        try {
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-            ])->timeout(5)->get('https://api.together.xyz/v1/models');
-
-            return $response->successful();
-        } catch (Exception $e) {
-            return false;
-        }
-    }
-
-    /**
-     * Process AI response (simplified)
-     */
-    private function processAiResponse(array $aiResponse): array
-    {
-        if (!isset($aiResponse['success']) || !$aiResponse['success']) {
-            return [
-                'success' => false,
-                'error' => $aiResponse['error'] ?? 'AI service error',
-                'raw_content' => $aiResponse['content'] ?? ''
-            ];
-        }
-
-        return [
-            'success' => true,
-            'data' => $aiResponse['content'] ?? '',
-            'usage' => $aiResponse['usage'] ?? null,
-            'model' => $aiResponse['model'] ?? null
-        ];
     }
 }

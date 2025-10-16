@@ -14,7 +14,6 @@
             <form wire:submit.prevent="uploadDocument">
                 @if ($errors->any())
                     <div class="alert alert-danger">
-                        <strong>Please fix the following errors:</strong>
                         <ul class="mb-0 mt-2">
                             @foreach ($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -30,22 +29,13 @@
                             <option value="{{ $profile->id }}">{{ $profile->name }} ({{ $profile->type }})</option>
                         @endforeach
                     </select>
-                    @error('selectedProfile')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
                 </div>
 
                 <div class="mb-3">
                     <label for="documents" class="form-label">Document Files</label>
                     <input type="file" wire:model="documents" class="form-control" id="documents"
                         accept=".pdf,.jpg,.jpeg,.png" multiple>
-                    @error('documents')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                    @error('documents.*')
-                        <div class="text-danger">{{ $message }}</div>
-                    @enderror
-                    <div class="form-text">Supported formats: PDF, JPG, PNG (max 10MB per file, up to 10 files)<br>
+                    <div class="form-text">Supported formats: PDF, JPG, PNG (max 5MB per file, up to 10 files)<br>
                         <small class="text-muted">💡 <strong>Tips:</strong> For best results, ensure PDFs contain
                             selectable text (not just images). High-quality scans work better than photos.</small>
                     </div>
@@ -153,6 +143,10 @@
                                                         </span>
                                                     @elseif ($job['status'] === 'completed')
                                                         <span class="badge bg-success">Completed</span>
+                                                    @elseif ($job['status'] === 'failed')
+                                                        <span class="badge bg-danger">Failed</span>
+                                                    @elseif ($job['status'] === 'deleted')
+                                                        <span class="badge bg-secondary">Deleted</span>
                                                     @else
                                                         <span
                                                             class="badge bg-secondary">{{ ucfirst($job['status']) }}</span>
@@ -213,7 +207,7 @@
                         <div class="col-md-6 mb-3">
                             <div class="card">
                                 <div class="card-header">
-                                    <strong>{{ $item['profile']->name }}</strong>
+                                    <strong>{{ $item['profile_name'] }}</strong>
                                     <span class="badge bg-secondary">{{ $item['count'] }} documents</span>
                                 </div>
                                 <div class="card-body">

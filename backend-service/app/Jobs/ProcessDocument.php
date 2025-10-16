@@ -10,10 +10,14 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class ProcessDocument implements ShouldQueue
+class ProcessDocument implements ShouldQueue, ShouldBeUnique
 {
     use Queueable, Batchable;
+
+    // this is the duration (in seconds) for which the job should be considered unique
+    public $uniqueFor = 1000;
 
     protected $filePath;
     protected $originalFilename;
@@ -29,6 +33,14 @@ class ProcessDocument implements ShouldQueue
         $this->originalFilename = $originalFilename;
         $this->profileId = $profileId;
         $this->userId = $userId;
+    }
+
+    /**
+     * Get the unique identifier for the job.
+     */
+    public function uniqueId()
+    {
+        return $this->profileId.'-'.md5($this->filePath);
     }
 
     /**
@@ -89,7 +101,7 @@ class ProcessDocument implements ShouldQueue
             DB::transaction(function () use ($documentRecord) {
                 $profile = UserProfile::where('id', $this->profileId)->lockForUpdate()->first();
                 $currentData = $profile->data ?? [];
-                $currentData[] = $documentRecord;
+                $currentData[$documentRecord['filename']] = $documentRecord;
                 $profile->update(['data' => $currentData]);
             });
 

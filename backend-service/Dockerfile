@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libfontconfig1 \
+    fontconfig \
     zip \
     unzip \
     nginx \
@@ -15,11 +17,14 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     tesseract-ocr \
     tesseract-ocr-deu \
-    tesseract-ocr-ara \
-    supervisor
+    tesseract-ocr-ara
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create fontconfig cache directory with proper permissions
+RUN mkdir -p /var/cache/fontconfig && chmod 755 /var/cache/fontconfig
+RUN mkdir -p /usr/local/share/fonts && chmod 755 /usr/local/share/fonts
 
 # Install PHP extensions
 RUN docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd
@@ -45,12 +50,18 @@ COPY docker/nginx.conf /etc/nginx/sites-available/default
 # Copy custom PHP configuration
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Copy supervisor configuration
-COPY docker/supervisor-queue.conf /etc/supervisor/conf.d/queue-worker.conf
-
 # Create Laravel storage and bootstrap cache directories
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache
 RUN chmod -R 775 storage bootstrap/cache
+
+# Create fontconfig cache directory in app directory and make it writable
+RUN mkdir -p /var/www/html/storage/fontconfig-cache && chmod 777 /var/www/html/storage/fontconfig-cache
+
+# Initialize fontconfig cache
+RUN fc-cache -f
+
+# Set fontconfig cache directory
+ENV FONTCONFIG_CACHE=/var/www/html/storage/fontconfig-cache
 
 # Expose port 8000
 EXPOSE 8000

@@ -33,20 +33,6 @@ class ProfileManager extends Component
         $this->profiles = auth()->user()->userProfiles()->get()->toArray();
     }
 
-    public function showCreateForm()
-    {
-        try {
-            $this->resetForm();
-            $this->showCreateForm = true;
-            $this->editingProfile = null;
-
-            // Debug: Add a flash message to confirm the method is called
-            session()->flash('debug', 'showCreateForm method called successfully');
-        } catch (\Exception $e) {
-            session()->flash('debug', 'Error in showCreateForm: ' . $e->getMessage());
-        }
-    }
-
     public function openCreateForm()
     {
         $this->resetForm();
@@ -71,9 +57,8 @@ class ProfileManager extends Component
     {
         $this->validate();
 
-        if ($this->editingProfile) {
+        if ($profile = UserProfile::find($this->editingProfile)) {
             // Update existing profile
-            $profile = UserProfile::find($this->editingProfile);
             $profile->update([
                 'name' => $this->name,
                 'type' => $this->type,

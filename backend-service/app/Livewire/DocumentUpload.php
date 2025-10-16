@@ -4,10 +4,6 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
-use App\Models\UserProfile;
-use App\Services\TogetherAIService;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 use App\Jobs\ProcessDocument;
 use Illuminate\Support\Facades\Bus;
 
@@ -25,16 +21,42 @@ class DocumentUpload extends Component
 
     protected $listeners = ['profileUpdated' => 'loadUserProfiles'];
 
-    protected $rules = [
-        'documents.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240', // 10MB max per file (matches PHP config)
-        'documents' => 'required|array|max:10', // Up to 10 files
-        'selectedProfile' => 'required|exists:user_profiles,id',
-    ];
+    protected function rules()
+    {
+        return [
+            'documents.*' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB max per file (matches PHP config)
+            'documents' => 'required|array|max:10', // Up to 10 files
+            'selectedProfile' => 'required|exists:user_profiles,id,user_id,' . auth()->id(),
+        ];
+    }
+
+    protected function validationAttributes()
+    {
+        return [
+            'documents' => 'document files',
+            'selectedProfile' => 'profile',
+        ];
+    }
+
+    protected function messages()
+    {
+        return [
+            'documents.required' => 'Please select at least one document file to upload.',
+            'documents.array' => 'Document files must be provided as an array.',
+            'documents.max' => 'You can upload a maximum of 10 document files at once.',
+            'documents.*.required' => 'Each document file is required.',
+            'documents.*.file' => 'Each uploaded item must be a valid file.',
+            'documents.*.mimes' => 'Only PDF, JPG, and PNG files are allowed.',
+            'documents.*.max' => 'Each document file must not exceed 5MB in size.',
+            'selectedProfile.required' => 'Please select a profile to associate the documents with.',
+            'selectedProfile.exists' => 'The selected profile is invalid or does not belong to you.',
+        ];
+    }
 
     public function mount()
     {
         $this->loadUserProfiles();
-        
+
         // Restore batch information from session if it exists
         $this->restoreBatchStatus();
     }
@@ -46,7 +68,7 @@ class DocumentUpload extends Component
             $this->currentBatchId = $batchId;
             $this->jobStatuses = session('current_job_statuses', []);
             $this->isProcessing = true; // Assume processing until we check
-            
+
             // Immediately check status to update
             $this->checkJobStatuses();
         }
@@ -54,10 +76,9 @@ class DocumentUpload extends Component
 
     public function loadUserProfiles()
     {
-        $this->uploadedDocuments = auth()->user()->userProfiles()
-            ->with('user')
-            ->get()
-            ->map(function ($profile) {
+        $profiles = auth()->user()->userProfiles()->with('user')->get();
+        if (!$profiles->isEmpty()) {
+            $this->uploadedDocuments = $profiles->map(function ($profile) {
                 $allData = $profile->data ?? [];
 
                 // Filter out only document objects (arrays with filename/uploaded_at keys)
@@ -66,42 +87,26 @@ class DocumentUpload extends Component
                 });
 
                 return [
-                    'profile' => $profile,
+                    'profile_id' => $profile->id,
+                    'profile_name' => $profile->name,
+                    'profile_type' => $profile->type,
                     'documents' => array_values($documents), // Re-index array
                     'count' => count($documents),
                 ];
-            })
-            ->toArray();
+            })->toArray();
+        } else {
+            $this->uploadedDocuments = [];
+        }
     }
 
     public function updatedDocuments()
     {
-        try {
-            $this->validateOnly('documents');
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            Log::warning('Document validation failed on update', [
-                'errors' => $e->errors(),
-                'documents_count' => count($this->documents ?? [])
-            ]);
-            // Don't re-throw here, let Livewire show the errors
-        }
+        $this->validateOnly('documents');
     }
 
     public function uploadDocument()
     {
-        try {
-            $this->validate();
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            // Log validation errors for debugging
-            Log::warning('Document upload validation failed', [
-                'errors' => $e->errors(),
-                'documents_count' => count($this->documents ?? []),
-                'selected_profile' => $this->selectedProfile
-            ]);
-
-            // Re-throw to let Livewire handle the validation errors
-            throw $e;
-        }
+        $this->validate();
 
         $this->isProcessing = true;
         $totalFiles = count($this->documents);
@@ -134,6 +139,7 @@ class DocumentUpload extends Component
                 $this->jobStatuses[] = [
                     'filename' => $document->getClientOriginalName(),
                     'status' => 'queued',
+                    'was_saved' => false,
                     'queued_at' => now()->toISOString(),
                 ];
 
@@ -153,7 +159,7 @@ class DocumentUpload extends Component
 
             // Store batch ID for tracking
             $this->currentBatchId = $batch->id;
-            
+
             // Persist batch information in session for page reloads
             session([
                 'current_document_batch_id' => $batch->id,
@@ -223,14 +229,36 @@ class DocumentUpload extends Component
 
         // Refresh uploaded documents to show new ones
         $this->loadUserProfiles();
-        
+
+        // Update statuses based on saved data
+        $profileData = collect($this->uploadedDocuments)->firstWhere('profile_id', $this->selectedProfile);
+        if ($profileData) {
+            $savedFilenames = collect($profileData['documents'])->pluck('filename')->toArray();
+            foreach ($this->jobStatuses as &$jobStatus) {
+                if (in_array($jobStatus['filename'], $savedFilenames)) {
+                    $jobStatus['status'] = 'completed';
+                    $jobStatus['was_saved'] = true;
+                    if (!isset($jobStatus['completed_at'])) {
+                        $jobStatus['completed_at'] = now()->toISOString();
+                    }
+                } elseif (($jobStatus['was_saved'] ?? false)) {
+                    $jobStatus['status'] = 'deleted';
+                } elseif (!$batch || $batch->finished()) {
+                    $jobStatus['status'] = 'failed';
+                } else {
+                    $jobStatus['status'] = 'processing';
+                }
+            }
+        }
+
         // Update session with current status
         session(['current_job_statuses' => $this->jobStatuses]);
-        
-        // Check if all jobs are completed
-        $allCompleted = !empty($this->jobStatuses) && collect($this->jobStatuses)->every(fn($job) => $job['status'] === 'completed');
-        if ($allCompleted) {
+
+        // Check if all jobs are processed
+        $allProcessed = !$batch || $batch->finished();
+        if ($allProcessed) {
             $this->isProcessing = false;
+            $this->processingStatus = 'All files processed!';
             // Clear session data when processing is complete
             session()->forget(['current_document_batch_id', 'current_job_statuses']);
         }
@@ -246,24 +274,6 @@ class DocumentUpload extends Component
     }
 
     /**
-     * Format error messages for user-friendly display
-     */
-    private function formatErrorMessage(array $aiResponse, string $filename): string
-    {
-        $error = $aiResponse['error'] ?? 'Unknown error';
-        $errorType = $aiResponse['error_type'] ?? 'unknown';
-
-        $userFriendlyMessages = [
-            'configuration' => "AI service is not configured. Please contact the administrator to set up the TOGETHER_API_KEY.",
-            'file_not_found' => "File '{$filename}' could not be found during processing.",
-            'text_extraction_failed' => "Could not extract text from '{$filename}'. The file might be corrupted, empty, or in an unsupported format.",
-            'processing_error' => "Failed to process '{$filename}': {$error}",
-        ];
-
-        return $userFriendlyMessages[$errorType] ?? "Error processing '{$filename}': {$error}";
-    }
-
-    /**
      * Validate uploaded file before processing
      */
     private function validateUploadedFile($document): ?string
@@ -273,7 +283,7 @@ class DocumentUpload extends Component
         $size = $document->getSize();
 
         // Check file size
-        $maxSize = 10 * 1024 * 1024; // 10MB
+        $maxSize = 5 * 1024 * 1024; // 5MB
         if ($size > $maxSize) {
             return "File '{$filename}' is too large ({$this->formatBytes($size)}). Maximum allowed size is {$this->formatBytes($maxSize)}.";
         }
