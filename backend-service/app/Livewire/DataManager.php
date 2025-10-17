@@ -13,8 +13,9 @@ class DataManager extends Component
     public $editingField = null;
     public $fieldKey = '';
     public $fieldValue = '';
-    public $fieldType = 'text';
-    public $editingDocumentTitle = null; // For tracking which document group we're editing
+    public $manualFieldType = 'text';
+    public $extractedFieldType = 'text';
+    public $editingDocumentName = null; // For tracking which document group we're editing
     public $originalFieldKey = null; // For tracking original field key when editing extracted fields
     public $groupedDocuments = [];
     public $manualFields = [];
@@ -50,6 +51,7 @@ class DataManager extends Component
 
     public function selectProfile($profileId)
     {
+        $this->editingField = null; // Reset any editing state
         $profile = UserProfile::find($profileId);
         if ($profile && $profile->user_id === auth()->id()) {
             $this->selectedProfile = $profile->toArray();
@@ -64,67 +66,40 @@ class DataManager extends Component
                 if (is_array($item) && isset($item['extracted_data'])) {
                     // This is a document record
                     $extractedData = $item['extracted_data'];
-                    if (is_array($extractedData) && isset($extractedData['Title'])) {
-                        $title = $extractedData['Title'];
-                        if (!isset($this->groupedDocuments[$title])) {
-                            $this->groupedDocuments[$title] = [
-                                'title' => $title,
-                                'documents' => [],
-                                'fields' => []
-                            ];
-                        }
-                        $this->groupedDocuments[$title]['documents'][] = $item;
-                        // Add all fields except 'Title' to the grouped fields
-                        foreach ($extractedData as $key => $value) {
-                            if ($key !== 'Title' && $key !== 'error') {
-                                $this->groupedDocuments[$title]['fields'][$key] = $value;
-                            }
-                        }
+                    $fileName = $item['filename'] ?? 'Unknown';
+                    if (!isset($this->groupedDocuments[$fileName])) {
+                        $this->groupedDocuments[$fileName] = [
+                            'title' => $item['extracted_data']['Title'] ?? $fileName,
+                            'documents' => [],
+                            'fields' => []
+                        ];
                     }
-                } elseif (is_array($item) && isset($item['filename'])) {
-                    // This is a document record (new format)
-                    $extractedData = $item['extracted_data'] ?? [];
-                    if (is_array($extractedData) && isset($extractedData['Title'])) {
-                        $title = $extractedData['Title'];
-                        if (!isset($this->groupedDocuments[$title])) {
-                            $this->groupedDocuments[$title] = [
-                                'title' => $title,
-                                'documents' => [],
-                                'fields' => []
-                            ];
-                        }
-                        $this->groupedDocuments[$title]['documents'][] = $item;
-                        // Add all fields except 'Title' to the grouped fields
-                        foreach ($extractedData as $key => $value) {
-                            if ($key !== 'Title' && $key !== 'error') {
-                                $this->groupedDocuments[$title]['fields'][$key] = $value;
-                            }
+                    $this->groupedDocuments[$fileName]['documents'][] = $item;
+                    // Add all fields except 'Title' to the grouped fields
+                    foreach ($extractedData as $key => $value) {
+                        if ($key !== 'Title' && $key !== 'error') {
+                            $this->groupedDocuments[$fileName]['fields'][$key] = $value;
                         }
                     }
                 } else {
-                    // This might be a manual field (key => value pair)
-                    if (is_string($item) || is_numeric($item)) {
-                        // Assume this is a manual field stored as key => value
-                        // But we need to handle the case where data is stored differently
-                        $this->manualFields = $allData; // Fallback to showing all data
-                        break;
+                    // This is a manual field
+                    if (is_array($item)) {
+                        foreach ($item as $key => $value) {
+                            $this->manualFields[$key] = $value;
+                        }
                     }
                 }
             }
 
-            // If no documents found, treat all data as manual fields
-            if (empty($this->groupedDocuments)) {
-                $this->manualFields = $allData;
-            }
+            $this->calculateTotalFieldCount();
+        }
+    }
 
-            // Calculate total field count
-            $this->totalFieldCount = count($this->manualFields);
-            foreach ($this->groupedDocuments as $group) {
-                $this->totalFieldCount += count($group['fields']);
-            }
-
-            // Keep backward compatibility for editing
-            $this->dataFields = $this->manualFields;
+    private function calculateTotalFieldCount()
+    {
+        $this->totalFieldCount = count($this->manualFields);
+        foreach ($this->groupedDocuments as $group) {
+            $this->totalFieldCount += count($group['fields']);
         }
     }
 
@@ -135,12 +110,19 @@ class DataManager extends Component
         $this->activeTab = 'extracted'; // Switch to extracted data tab
     }
 
-    public function editField($key)
+    public function addNewField()
     {
-        $this->editingField = $key;
+        $this->resetFieldForm();
+        $this->editingField = 'new';
+        $this->activeTab = 'manual';
+    }
+
+    public function editManualField($key, $value)
+    {
+        $this->editingField = 'manual';
         $this->fieldKey = $key;
-        $this->fieldValue = $this->dataFields[$key] ?? '';
-        $this->fieldType = $this->detectFieldType($this->fieldValue);
+        $this->fieldValue = $value;
+        $this->manualFieldType = $this->detectFieldType($this->fieldValue);
     }
 
     public function saveField()
@@ -158,51 +140,67 @@ class DataManager extends Component
 
         $this->validate([
             'fieldKey' => 'required|string|max:255',
-            'fieldValue' => 'nullable|string',
+            'fieldValue' => 'nullable',
         ]);
 
         $profile = UserProfile::find($this->selectedProfile['id']);
         if ($profile && $profile->user_id === auth()->id()) {
             $data = $profile->data ?? [];
-            $data[$this->fieldKey] = $this->fieldValue;
+
+            // Ensure manual_fields is an array
+            if (!isset($data['manual_fields']) || !is_array($data['manual_fields'])) {
+                $data['manual_fields'] = [];
+            }
+
+            // Update the manual fields
+            $data['manual_fields'][$this->fieldKey] = $this->fieldValue;
+
             $profile->data = $data;
             $profile->save();
 
-            $this->dataFields = $data;
+            $this->manualFields = $data['manual_fields'];
+            $this->dataFields = $data['manual_fields'];
             $this->resetFieldForm();
+            $this->calculateTotalFieldCount();
             session()->flash('message', 'Field updated successfully!');
         }
     }
 
-    public function deleteField($key)
+    public function deleteManualField($key)
     {
         if (!$this->selectedProfile) return;
 
         $profile = UserProfile::find($this->selectedProfile['id']);
         if ($profile && $profile->user_id === auth()->id()) {
             $data = $profile->data ?? [];
-            unset($data[$key]);
-            $profile->data = $data;
-            $profile->save();
 
-            $this->dataFields = $data;
-            session()->flash('message', 'Field deleted successfully!');
+            // Check if manual_fields exists at top level
+            if (isset($data['manual_fields']) && is_array($data['manual_fields'])) {
+                unset($data['manual_fields'][$key]);
+                $profile->data = $data;
+                $profile->save();
+
+                $this->manualFields = $data['manual_fields'];
+                $this->dataFields = $data['manual_fields'];
+                $this->calculateTotalFieldCount();
+                session()->flash('message', 'Field deleted successfully!');
+            }
         }
     }
 
-    public function editExtractedField($documentTitle, $fieldKey)
+    public function editExtractedField($documentName, $fieldKey)
     {
         $this->editingField = 'extracted';
-        $this->editingDocumentTitle = $documentTitle;
+        $this->editingDocumentName = $documentName;
         $this->originalFieldKey = $fieldKey; // Store original key
         $this->fieldKey = $fieldKey;
-        $this->fieldValue = $this->groupedDocuments[$documentTitle]['fields'][$fieldKey] ?? '';
-        $this->fieldType = $this->detectFieldType($this->fieldValue);
+        $this->fieldValue = $this->groupedDocuments[$documentName]['fields'][$fieldKey] ?? '';
+        $this->extractedFieldType = $this->detectFieldType($this->fieldValue);
     }
 
     public function saveExtractedField()
     {
-        if (!$this->selectedProfile || !$this->editingDocumentTitle) return;
+        if (!$this->selectedProfile || !$this->editingDocumentName) return;
 
         $this->validate([
             'fieldKey' => 'required|string|max:255',
@@ -213,25 +211,8 @@ class DataManager extends Component
         if ($profile && $profile->user_id === auth()->id()) {
             $allData = $profile->data ?? [];
 
-            // Find and update the document records for this title
-            foreach ($allData as &$item) {
-                if (is_array($item) && isset($item['extracted_data']) &&
-                    isset($item['extracted_data']['Title']) &&
-                    $item['extracted_data']['Title'] === $this->editingDocumentTitle) {
-                    // If the key changed, remove the old key
-                    if ($this->originalFieldKey && $this->originalFieldKey !== $this->fieldKey) {
-                        unset($item['extracted_data'][$this->originalFieldKey]);
-                    }
-                    $item['extracted_data'][$this->fieldKey] = $this->fieldValue;
-                } elseif (is_array($item) && isset($item['filename']) &&
-                         isset($item['extracted_data']['Title']) &&
-                         $item['extracted_data']['Title'] === $this->editingDocumentTitle) {
-                    // If the key changed, remove the old key
-                    if ($this->originalFieldKey && $this->originalFieldKey !== $this->fieldKey) {
-                        unset($item['extracted_data'][$this->originalFieldKey]);
-                    }
-                    $item['extracted_data'][$this->fieldKey] = $this->fieldValue;
-                }
+            if(isset($allData[$this->editingDocumentName]['extracted_data'][$this->fieldKey])) {
+                unset($allData[$this->editingDocumentName]['extracted_data'][$this->fieldKey]);
             }
 
             $profile->data = $allData;
@@ -244,7 +225,7 @@ class DataManager extends Component
         }
     }
 
-    public function deleteExtractedField($documentTitle, $fieldKey)
+    public function deleteExtractedField($documentName, $fieldKey)
     {
         if (!$this->selectedProfile) return;
 
@@ -252,17 +233,8 @@ class DataManager extends Component
         if ($profile && $profile->user_id === auth()->id()) {
             $allData = $profile->data ?? [];
 
-            // Find and update the document records for this title
-            foreach ($allData as &$item) {
-                if (is_array($item) && isset($item['extracted_data']) &&
-                    isset($item['extracted_data']['Title']) &&
-                    $item['extracted_data']['Title'] === $documentTitle) {
-                    unset($item['extracted_data'][$fieldKey]);
-                } elseif (is_array($item) && isset($item['filename']) &&
-                         isset($item['extracted_data']['Title']) &&
-                         $item['extracted_data']['Title'] === $documentTitle) {
-                    unset($item['extracted_data'][$fieldKey]);
-                }
+            if(isset($allData[$documentName]['extracted_data'][$fieldKey])) {
+                unset($allData[$documentName]['extracted_data'][$fieldKey]);
             }
 
             $profile->data = $allData;
@@ -274,7 +246,7 @@ class DataManager extends Component
         }
     }
 
-    public function deleteDocumentGroup($documentTitle)
+    public function deleteDocumentGroup($documentName)
     {
         if (!$this->selectedProfile) return;
 
@@ -282,21 +254,11 @@ class DataManager extends Component
         if ($profile && $profile->user_id === auth()->id()) {
             $allData = $profile->data ?? [];
 
-            // Remove all document records with this title
-            $filteredData = array_filter($allData, function($item) use ($documentTitle) {
-                if (is_array($item) && isset($item['extracted_data']) &&
-                    isset($item['extracted_data']['Title']) &&
-                    $item['extracted_data']['Title'] === $documentTitle) {
-                    return false; // Remove this item
-                } elseif (is_array($item) && isset($item['filename']) &&
-                         isset($item['extracted_data']['Title']) &&
-                         $item['extracted_data']['Title'] === $documentTitle) {
-                    return false; // Remove this item
-                }
-                return true; // Keep this item
-            });
+            if(isset($allData[$documentName])) {
+                unset($allData[$documentName]);
+            }
 
-            $profile->data = array_values($filteredData); // Re-index array
+            $profile->data = $allData;
             $profile->save();
 
             // Refresh the grouped data
@@ -308,11 +270,14 @@ class DataManager extends Component
     public function resetFieldForm()
     {
         $this->editingField = null;
-        $this->editingDocumentTitle = null;
+        $this->editingDocumentName = null;
         $this->originalFieldKey = null;
         $this->fieldKey = '';
         $this->fieldValue = '';
-        $this->fieldType = 'text';
+        $this->fieldKey = '';
+        $this->fieldValue = '';
+        $this->manualFieldType = 'text';
+        $this->extractedFieldType = 'text';
     }
 
     public function cancelEdit()
