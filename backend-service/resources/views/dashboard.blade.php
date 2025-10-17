@@ -26,37 +26,7 @@
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
-                <ul class="nav nav-tabs" id="dashboardTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="profiles-tab" data-bs-toggle="tab"
-                            data-bs-target="#profiles" type="button" role="tab" aria-controls="profiles"
-                            aria-selected="true">Manage
-                            Profiles</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="upload-tab" data-bs-toggle="tab" data-bs-target="#upload"
-                            type="button" role="tab" aria-controls="upload" aria-selected="false">Upload
-                            Documents</button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="data-tab" data-bs-toggle="tab" data-bs-target="#data"
-                            type="button" role="tab" aria-controls="data" aria-selected="false">Extracted
-                            Data</button>
-                    </li>
-                </ul>
-
-                <div class="tab-content mt-4" id="dashboardTabsContent">
-                    <div class="tab-pane fade show active" id="profiles" role="tabpanel"
-                        aria-labelledby="profiles-tab">
-                        @livewire('profile-manager')
-                    </div>
-                    <div class="tab-pane fade" id="upload" role="tabpanel" aria-labelledby="upload-tab">
-                        @livewire('document-upload')
-                    </div>
-                    <div class="tab-pane fade" id="data" role="tabpanel" aria-labelledby="data-tab">
-                        @livewire('data-manager')
-                    </div>
-                </div>
+                @livewire('dashboard')
             </div>
         </div>
     </div>

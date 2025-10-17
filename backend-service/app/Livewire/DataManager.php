@@ -21,11 +21,22 @@ class DataManager extends Component
     public $activeTab = 'extracted'; // 'extracted' or 'manual'
     public $totalFieldCount = 0;
 
-    protected $listeners = ['profileUpdated' => 'loadProfiles'];
+    protected $listeners = [
+        'profileUpdated' => 'loadProfiles',
+        'selectProfileFromManager' => 'selectProfileFromManager'
+    ];
 
     public function mount()
     {
         $this->loadProfiles();
+
+        // Check if a profile was selected from the profile manager
+        if (session()->has('selected_profile_for_data_tab')) {
+            $profileId = session('selected_profile_for_data_tab');
+            // session()->forget('selected_profile_for_data_tab'); // Clear the session variable
+            $this->selectProfile($profileId);
+            $this->activeTab = 'extracted';
+        }
     }
 
     public function loadProfiles()
@@ -42,6 +53,7 @@ class DataManager extends Component
         $profile = UserProfile::find($profileId);
         if ($profile && $profile->user_id === auth()->id()) {
             $this->selectedProfile = $profile->toArray();
+            session(['selected_profile_for_data_tab' => $profileId]); // Save to session for persistence
             $allData = $profile->data ?? [];
 
             // Separate document data from manual fields
@@ -114,6 +126,13 @@ class DataManager extends Component
             // Keep backward compatibility for editing
             $this->dataFields = $this->manualFields;
         }
+    }
+
+    public function selectProfileFromManager($data)
+    {
+        $profileId = $data['profileId'];
+        $this->selectProfile($profileId);
+        $this->activeTab = 'extracted'; // Switch to extracted data tab
     }
 
     public function editField($key)

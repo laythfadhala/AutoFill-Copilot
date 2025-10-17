@@ -118,6 +118,15 @@ class ProfileManager extends Component
         }
     }
 
+    public function viewExtractedData($profileId)
+    {
+        // Store the profile ID in session so DataManager can pick it up
+        session(['selected_profile_for_data_tab' => $profileId]);
+
+        // Dispatch event to parent Dashboard component to switch tabs
+        $this->dispatch('switchToDataTab')->to(Dashboard::class);
+    }
+
     public function resetForm()
     {
         $this->name = '';

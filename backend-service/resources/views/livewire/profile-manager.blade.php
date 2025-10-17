@@ -96,6 +96,9 @@
                         <p><strong>Documents:</strong> {{ count($profile['data'] ?? []) }}</p>
                         <p><strong>Created:</strong>
                             {{ \Carbon\Carbon::parse($profile['created_at'])->format('M j, Y') }}</p>
+                        <button wire:click="viewExtractedData({{ $profile['id'] }})" class="btn btn-info btn-sm w-100">
+                            <i class="fas fa-eye"></i> View Extracted Data
+                        </button>
                     </div>
                 </div>
             </div>
