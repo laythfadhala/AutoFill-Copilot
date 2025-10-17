@@ -30,29 +30,6 @@ class DocumentUpload extends Component
         ];
     }
 
-    protected function validationAttributes()
-    {
-        return [
-            'documents' => 'document files',
-            'selectedProfile' => 'profile',
-        ];
-    }
-
-    protected function messages()
-    {
-        return [
-            'documents.required' => 'Please select at least one document file to upload.',
-            'documents.array' => 'Document files must be provided as an array.',
-            'documents.max' => 'You can upload a maximum of 10 document files at once.',
-            'documents.*.required' => 'Each document file is required.',
-            'documents.*.file' => 'Each uploaded item must be a valid file.',
-            'documents.*.mimes' => 'Only PDF, JPG, and PNG files are allowed.',
-            'documents.*.max' => 'Each document file must not exceed 5MB in size.',
-            'selectedProfile.required' => 'Please select a profile to associate the documents with.',
-            'selectedProfile.exists' => 'The selected profile is invalid or does not belong to you.',
-        ];
-    }
-
     public function mount()
     {
         $this->loadUserProfiles();
@@ -154,7 +131,7 @@ class DocumentUpload extends Component
         if (!empty($jobs)) {
             $batch = Bus::batch($jobs)
                 ->name('document-processing-' . now()->timestamp)
-                ->onQueue('documents')
+                ->onQueue('default')
                 ->dispatch();
 
             // Store batch ID for tracking

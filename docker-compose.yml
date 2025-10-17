@@ -51,10 +51,10 @@ services:
       db:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
     networks:
       - autofill-network
-    command: php artisan horizon
+    command: bash -c "/scripts/release_reserved.sh && sleep 5 && php artisan horizon"
 
   # Redis - Caching and sessions
   redis:
@@ -65,14 +65,20 @@ services:
       - "6379:6379"
     networks:
       - autofill-network
-    command: redis-server --save "" --appendonly no
+    command: redis-server --save "60 10000"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test:
+        [
+          "CMD",
+          "sh",
+          "-c",
+          "redis-cli ping && redis-cli info server > /dev/null",
+        ]
       interval: 5s
-      timeout: 3s
-      retries: 5
+      timeout: 10s
+      retries: 10
 
 volumes:
   postgres_data:

@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
     imagemagick \
     tesseract-ocr \
     tesseract-ocr-deu \
-    tesseract-ocr-ara
+    tesseract-ocr-ara \
+    redis-tools
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -49,6 +50,10 @@ COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 # Copy custom PHP configuration
 COPY docker/php.ini /usr/local/etc/php/conf.d/custom.ini
+
+# Copy release reserved script
+COPY docker/release_reserved.sh /scripts/release_reserved.sh
+RUN chmod +x /scripts/release_reserved.sh
 
 # Create Laravel storage and bootstrap cache directories
 RUN mkdir -p storage/logs storage/framework/sessions storage/framework/views storage/framework/cache
