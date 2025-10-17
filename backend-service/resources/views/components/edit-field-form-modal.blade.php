@@ -9,8 +9,6 @@
                     <div class="mb-3">
                         <label class="form-label">Field Key</label>
                         <input type="text" wire:model="fieldKey" class="form-control">
-                        @if ($editingField !== 'new')
-                        @endif
                         @error('fieldKey')
                             <div class="text-danger">{{ $message }}</div>
                         @enderror

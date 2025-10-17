@@ -1,12 +1,12 @@
 <!-- Manual Fields Tab -->
 <div class="tab-pane {{ $activeTab === 'manual' ? 'active' : '' }}">
-    @if ($editingField === 'manual')
+    @if ($editingField === 'manual' || $editingField === 'new')
         @include('components.edit-field-form-modal')
     @endif
 
     @if (count($manualFields) > 0)
-        <button wire:click="addNewField" class="btn btn-primary">Add First Field</button>
         <div class="table-responsive">
+            <button wire:click="addNewField" class="btn btn-outline-primary float-end py-0">Add +</button>
             <table class="table table-striped">
                 <thead>
                     <tr>
