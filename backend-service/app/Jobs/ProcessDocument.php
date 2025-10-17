@@ -61,7 +61,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
 
             // Process with AI service
             $aiService = app(TogetherAIService::class);
-            $aiResponse = $aiService->processDocument($fullPath);
+            $aiResponse = $aiService->processTextFromDocument($fullPath);
 
             // Check for processing errors
             if (isset($aiResponse['error'])) {

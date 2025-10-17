@@ -68,7 +68,7 @@ class TogetherAIService
      * @param string $filePath Path to the uploaded file
      * @return array Extracted data from the document
      */
-    public function processDocument(string $filePath): array
+    public function processTextFromDocument(string $filePath): array
     {
         try {
             // Check if API key is available
@@ -170,27 +170,5 @@ class TogetherAIService
             Log::error('AI API request failed', ['status' => $response->status(), 'body' => $response->body()]);
             throw new Exception('AI API request failed with status ' . $response->status() . ': ' . $response->body());
         }
-    }
-    public function generateCompletion(string $extractedText, array $options = []): array
-    {
-        try {
-            $response = $this->callTogetherAI($extractedText);
-            return [
-                'success' => true,
-                'content' => $response,
-                'usage' => null,
-                'model' => $this->defaultModel,
-            ];
-        } catch (Exception $e) {
-            return [
-                'success' => false,
-                'error' => $e->getMessage(),
-            ];
-        }
-    }
-
-    public function analyzeForm(array $formData): array
-    {
-        return $this->generateCompletion(json_encode($formData));
     }
 }
