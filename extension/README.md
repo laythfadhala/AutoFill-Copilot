@@ -30,7 +30,7 @@ Intelligent form auto-fill browser extension powered by AI that securely detects
 
 ## Setup
 
-1. **Start the Backend Service**: Ensure your AutoFill microservices backend is running at `http://localhost:8000`
+1. **Start the Backend Service**: Ensure your AutoFill microservices backend is running at `https://localhost`
 
 2. **Configure Extension**:
 
@@ -92,7 +92,7 @@ The extension requires these permissions:
 
 ### API Connection
 
--   **API Base URL** - Backend service URL (default: http://localhost:8000)
+-   **API Base URL** - Backend service URL (default: https://localhost)
 -   **Test Connection** - Verify connection to backend service
 
 ## Usage

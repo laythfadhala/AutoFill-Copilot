@@ -4,8 +4,8 @@ services:
     build: ./backend-service
     container_name: autofill-backend-service
     restart: always
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
     env_file:
       - ./backend-service/.env
     volumes:
@@ -15,6 +15,22 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    networks:
+      - autofill-network
+
+  caddy:
+    image: caddy:latest
+    container_name: autofill-caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - backend-service
     networks:
       - autofill-network
 
@@ -83,6 +99,8 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  caddy_data:
+  caddy_config:
 
 networks:
   autofill-network:

@@ -1,5 +1,5 @@
 // AutoFill Copilot Background Script
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://localhost/api';
 
 // Handle extension messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

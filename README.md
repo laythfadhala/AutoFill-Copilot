@@ -108,30 +108,30 @@ docker-compose ps
 
 ````bash
 # Check backend health
-curl http://localhost:8000/api/health
+curl https://localhost/api/health
 
 # Register a test user via API
-curl -X POST http://localhost:8000/api/auth/register \
+curl -X POST https://localhost/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
 ```bash
 # Check backend health
-curl http://localhost:8000/api/health
+curl https://localhost/api/health
 
 # Register a test user via API
-curl -X POST http://localhost:8000/api/auth/register \
+curl -X POST https://localhost/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Test User","email":"test@example.com","password":"password123","password_confirmation":"password123"}'
 ````
 
 ## 🔧 Service Access
 
-| Service             | URL                              | Description                 |
-| ------------------- | -------------------------------- | --------------------------- |
-| 🚀 **Backend API**  | http://localhost:8000            | Main API endpoint           |
-| 💚 **Health Check** | http://localhost:8000/api/health | Service status              |
-| 🐘 **PostgreSQL**   | localhost:5432                   | Database (autofill_backend) |
-| 🔴 **Redis**        | localhost:6379                   | Cache layer                 |
+| Service             | URL                          | Description                 |
+| ------------------- | ---------------------------- | --------------------------- |
+| 🚀 **Backend API**  | https://localhost            | Main API endpoint           |
+| 💚 **Health Check** | https://localhost/api/health | Service status              |
+| 🐘 **PostgreSQL**   | localhost:5432               | Database (autofill_backend) |
+| 🔴 **Redis**        | localhost:6379               | Cache layer                 |
 
 ## 🛠️ Development Commands
 
@@ -197,7 +197,7 @@ docker-compose up -d --build
 
 ```mermaid
 graph TB
-  A[Chrome Extension] --> B[Backend Service :8000]
+  A[Chrome Extension] --> B[Backend Service ]
   B --> C[(PostgreSQL)]
   B --> D[(Redis Cache)]
 

@@ -1,0 +1,28 @@
+{
+    email laithfadhala@gmail.com
+}
+
+localhost, autofillcopilot.com, www.autofillcopilot.com {
+    tls internal
+    encode gzip
+    reverse_proxy backend-service:8000
+
+    handle_errors {
+        respond 500 "{\"error\": \"Internal server error\"}"
+        respond 502 "{\"error\": \"Bad gateway\"}"
+        respond 503 "{\"error\": \"Service temporarily unavailable\"}"
+        respond 504 "{\"error\": \"Gateway timeout\"}"
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "no-referrer-when-downgrade"
+    }
+
+    log {
+        output file /var/log/caddy/access.log
+    }
+}
