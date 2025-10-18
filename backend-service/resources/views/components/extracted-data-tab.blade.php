@@ -5,7 +5,10 @@
         <div class="accordion" id="documentsAccordion">
             @foreach ($groupedDocuments as $fileName => $documentGroup)
                 <div class="accordion-item">
-                    <h2 class="accordion-header" id="heading{{ $loop->index }}">
+                    <h2 class="accordion-header" id="heading{{ $loop->index }}"
+                        style="transition: background-color 0.2s ease; cursor: pointer;"
+                        onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor=''"
+                        onfocusin="this.style.backgroundColor='#f8f9fa'" onfocusout="this.style.backgroundColor=''">
                         <div class="d-flex align-items-center justify-content-between">
                             <button id="{{ $loop->index }}" wire:click="deleteDocumentGroup('{{ $fileName }}')"
                                 wire:confirm="Are you sure you want to delete all fields from this document? This action cannot be undone."
@@ -40,7 +43,7 @@
                                             <tr>
                                                 <th>Field</th>
                                                 <th>Value</th>
-                                                <th>Actions</th>
+                                                <th class="ps-5">Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>

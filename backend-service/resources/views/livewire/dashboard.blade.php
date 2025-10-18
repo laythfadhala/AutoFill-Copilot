@@ -1,8 +1,4 @@
 <div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4>Dashboard</h4>
-    </div>
-
     <!-- Tab Navigation -->
     <ul class="nav nav-tabs" role="tablist">
         <li class="nav-item" role="presentation">

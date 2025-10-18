@@ -7,12 +7,12 @@
     @if (count($manualFields) > 0)
         <div class="table-responsive">
             <button wire:click="addNewField" class="btn btn-outline-primary float-end py-0">Add +</button>
-            <table class="table table-striped">
+            <table class="table table-sm">
                 <thead>
                     <tr>
                         <th>Field Key</th>
                         <th>Field Value</th>
-                        <th>Actions</th>
+                        <th class="ps-5">Actions</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -17,7 +17,7 @@
                     class="form-control form-control-sm" placeholder="Field Value">
             @endif
         </td>
-        <td>
+        <td class="ps-5">
             <button id="save-btn-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
                 wire:click="{{ $type === 'extracted' ? 'saveExtractedField' : 'saveField' }}"
                 class="btn btn-sm btn-success me-1">Save</button>
@@ -35,7 +35,7 @@
                 {{ $fieldValue }}
             @endif
         </td>
-        <td>
+        <td class="ps-5">
             <button id="edit-btn-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
                 wire:click="{{ $type === 'extracted' ? 'editExtractedField(\'' . addslashes($fileName) . '\', \'' . addslashes($fieldKey) . '\')' : 'editManualField(\'' . addslashes($fieldKey) . '\', \'' . addslashes(is_array($fieldValue) || is_object($fieldValue) ? json_encode($fieldValue) : $fieldValue) . '\')' }}"
                 class="btn btn-sm btn-outline-primary me-1">Edit</button>
