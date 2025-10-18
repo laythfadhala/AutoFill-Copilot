@@ -76,12 +76,7 @@ class DocumentUpload extends Component
         }
     }
 
-    public function updatedDocuments()
-    {
-        $this->validateOnly('documents');
-    }
-
-    public function uploadDocument()
+    public function processDocument()
     {
         $this->validate();
 
@@ -96,13 +91,6 @@ class DocumentUpload extends Component
         foreach ($this->documents as $index => $document) {
             try {
                 $this->processingStatus = "Validating file " . ($index + 1) . " of {$totalFiles}: {$document->getClientOriginalName()}";
-
-                // Pre-validate file
-                $validationError = $this->validateUploadedFile($document);
-                if ($validationError) {
-                    $errors[] = $validationError;
-                    continue;
-                }
 
                 $this->processingStatus = "Queueing file " . ($index + 1) . " of {$totalFiles} for processing: {$document->getClientOriginalName()}";
 
@@ -248,64 +236,5 @@ class DocumentUpload extends Component
         return view('livewire.document-upload', [
             'profiles' => $profiles,
         ]);
-    }
-
-    /**
-     * Validate uploaded file before processing
-     */
-    private function validateUploadedFile($document): ?string
-    {
-        $filename = $document->getClientOriginalName();
-        $mimeType = $document->getMimeType();
-        $size = $document->getSize();
-
-        // Check file size
-        $maxSize = 5 * 1024 * 1024; // 5MB
-        if ($size > $maxSize) {
-            return "File '{$filename}' is too large ({$this->formatBytes($size)}). Maximum allowed size is {$this->formatBytes($maxSize)}.";
-        }
-
-        // Check MIME type
-        $allowedMimes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-        if (!in_array($mimeType, $allowedMimes)) {
-            return "File '{$filename}' has unsupported format '{$mimeType}'. Only PDF, JPG, and PNG files are allowed.";
-        }
-
-        // For PDFs, check if it's not empty
-        if ($mimeType === 'application/pdf' && $size < 100) {
-            return "File '{$filename}' appears to be an empty or corrupted PDF.";
-        }
-
-        // For images, check basic image properties
-        if (str_starts_with($mimeType, 'image/')) {
-            try {
-                $imageInfo = getimagesize($document->getRealPath());
-                if (!$imageInfo) {
-                    return "File '{$filename}' is not a valid image file.";
-                }
-                // Check if image has reasonable dimensions
-                if ($imageInfo[0] < 10 || $imageInfo[1] < 10) {
-                    return "File '{$filename}' has invalid image dimensions.";
-                }
-            } catch (Exception $e) {
-                return "File '{$filename}' could not be validated as an image.";
-            }
-        }
-
-        return null; // No validation errors
-    }
-
-    /**
-     * Format bytes into human readable format
-     */
-    private function formatBytes($bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $i = 0;
-        while ($bytes >= 1024 && $i < count($units) - 1) {
-            $bytes /= 1024;
-            $i++;
-        }
-        return round($bytes, 2) . ' ' . $units[$i];
     }
 }

@@ -5,7 +5,7 @@
     </div>
 @endif
 
-<form wire:submit.prevent="uploadDocument">
+<form wire:submit.prevent="processDocument">
     @if ($errors->any())
         <div class="alert alert-danger">
             <ul class="mb-0 mt-2">
@@ -50,9 +50,9 @@
         </div>
     @endif
 
-    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="uploadDocument">
-        <span wire:loading.remove wire:target="uploadDocument">Upload & Process Files</span>
-        <span wire:loading wire:target="uploadDocument">
+    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="processDocument">
+        <span wire:loading.remove wire:target="processDocument">Upload & Process Files</span>
+        <span wire:loading wire:target="processDocument">
             <span class="spinner-border spinner-border-sm" role="status"></span>
             Processing Files...
         </span>
