@@ -13,14 +13,13 @@ class DataManager extends Component
     public $editingField = null;
     public $fieldKey = '';
     public $fieldValue = '';
-    public $manualFieldType = 'text';
-    public $extractedFieldType = 'text';
     public $editingDocumentName = null; // For tracking which document group we're editing
     public $originalFieldKey = null; // For tracking original field key when editing extracted fields
     public $groupedDocuments = [];
     public $manualFields = [];
     public $activeTab = 'extracted'; // 'extracted' or 'manual'
     public $totalFieldCount = 0;
+    public $expandedAccordions = [];
 
     protected $listeners = [
         'profileUpdated' => 'loadProfiles',
@@ -121,8 +120,8 @@ class DataManager extends Component
     {
         $this->editingField = 'manual';
         $this->fieldKey = $key;
+        $this->originalFieldKey = $key;
         $this->fieldValue = $value;
-        $this->manualFieldType = $this->detectFieldType($this->fieldValue);
     }
 
     public function saveField()
@@ -152,8 +151,15 @@ class DataManager extends Component
                 $data['manual_fields'] = [];
             }
 
-            // Update the manual fields
-            $data['manual_fields'][$this->fieldKey] = $this->fieldValue;
+            if($this->editingField === 'new') {
+                $data['manual_fields'][$this->fieldKey] = $this->fieldValue;
+            } else {
+                // If the key has changed, rename it
+                if($this->originalFieldKey !== $this->fieldKey) {
+                    unset($data['manual_fields'][$this->originalFieldKey]);
+                }
+                $data['manual_fields'][$this->fieldKey] = $this->fieldValue;
+            }
 
             $profile->data = $data;
             $profile->save();
@@ -195,7 +201,6 @@ class DataManager extends Component
         $this->originalFieldKey = $fieldKey; // Store original key
         $this->fieldKey = $fieldKey;
         $this->fieldValue = $this->groupedDocuments[$documentName]['fields'][$fieldKey] ?? '';
-        $this->extractedFieldType = $this->detectFieldType($this->fieldValue);
     }
 
     public function saveExtractedField()
@@ -211,8 +216,13 @@ class DataManager extends Component
         if ($profile && $profile->user_id === auth()->id()) {
             $allData = $profile->data ?? [];
 
-            if(isset($allData[$this->editingDocumentName]['extracted_data'][$this->fieldKey])) {
-                unset($allData[$this->editingDocumentName]['extracted_data'][$this->fieldKey]);
+            if(isset($allData[$this->editingDocumentName]['extracted_data'][$this->originalFieldKey])) {
+                $allData[$this->editingDocumentName]['extracted_data'][$this->originalFieldKey] = $this->fieldValue;
+                if($this->originalFieldKey !== $this->fieldKey) {
+                    // If the key has changed, rename it
+                    $allData[$this->editingDocumentName]['extracted_data'][$this->fieldKey] = $allData[$this->editingDocumentName]['extracted_data'][$this->originalFieldKey];
+                    unset($allData[$this->editingDocumentName]['extracted_data'][$this->originalFieldKey]);
+                }
             }
 
             $profile->data = $allData;
@@ -276,8 +286,6 @@ class DataManager extends Component
         $this->fieldValue = '';
         $this->fieldKey = '';
         $this->fieldValue = '';
-        $this->manualFieldType = 'text';
-        $this->extractedFieldType = 'text';
     }
 
     public function cancelEdit()
@@ -285,34 +293,13 @@ class DataManager extends Component
         $this->resetFieldForm();
     }
 
-    private function detectFieldType($value)
+    public function toggleAccordion($index)
     {
-        if (!is_string($value)) {
-            if (is_array($value)) {
-                return 'array';
-            }
-            if (is_object($value)) {
-                return 'object';
-            }
-            if (is_bool($value)) {
-                return 'boolean';
-            }
-            if (is_numeric($value)) {
-                return 'number';
-            }
-            return 'unknown';
+        if (in_array($index, $this->expandedAccordions)) {
+            $this->expandedAccordions = array_diff($this->expandedAccordions, [$index]);
+        } else {
+            $this->expandedAccordions[] = $index;
         }
-
-        if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
-            return 'email';
-        }
-        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
-            return 'date';
-        }
-        if (preg_match('/^\d+$/', $value)) {
-            return 'number';
-        }
-        return 'text';
     }
 
     public function render()

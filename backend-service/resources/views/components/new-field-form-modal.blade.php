@@ -14,29 +14,10 @@
                         @enderror
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label class="form-label">Field Type</label>
-                        <select wire:model="manualFieldType" class="form-select">
-                            <option value="text">Text</option>
-                            <option value="email">Email</option>
-                            <option value="number">Number</option>
-                            <option value="date">Date</option>
-                        </select>
-                    </div>
-                </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Field Value</label>
-                @if ($manualFieldType === 'date')
-                    <input type="date" wire:model="fieldValue" class="form-control">
-                @elseif($manualFieldType === 'email')
-                    <input type="email" wire:model="fieldValue" class="form-control">
-                @elseif($manualFieldType === 'number')
-                    <input type="number" wire:model="fieldValue" class="form-control">
-                @else
-                    <textarea wire:model="fieldValue" class="form-control" rows="3"></textarea>
-                @endif
+                <textarea wire:model="fieldValue" class="form-control" rows="3"></textarea>
                 @error('fieldValue')
                     <div class="text-danger">{{ $message }}</div>
                 @enderror

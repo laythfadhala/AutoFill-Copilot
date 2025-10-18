@@ -5,19 +5,6 @@
     <div class="card-body">
         @if (empty($uploadedDocuments))
             <p class="text-muted">No documents uploaded yet.</p>
-            <div class="alert alert-info">
-                <h6><i class="fas fa-info-circle"></i> Troubleshooting Common Issues</h6>
-                <ul class="mb-0 small">
-                    <li><strong>"Could not extract text"</strong> - PDF might contain only images. Try a different
-                        PDF or scan with OCR.</li>
-                    <li><strong>"OCR tool not installed"</strong> - Contact administrator to install tesseract and
-                        poppler-utils.</li>
-                    <li><strong>"AI service not configured"</strong> - TOGETHER_API_KEY needs to be set in
-                        environment.</li>
-                    <li><strong>"File too large"</strong> - Compress your PDF or use a smaller image (max 5MB).</li>
-                    <li><strong>"Invalid format"</strong> - Only PDF, JPG, and PNG files are supported.</li>
-                </ul>
-            </div>
         @else
             <div class="row">
                 @foreach ($uploadedDocuments as $item)
