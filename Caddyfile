@@ -3,7 +3,7 @@
 }
 
 {$CADDY_DOMAIN} {
-    encode {$CADDY_ENCODING}
+    encode gzip zstd
     reverse_proxy backend-service:8000
 
     handle_errors {
