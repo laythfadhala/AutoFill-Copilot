@@ -22,6 +22,12 @@ services:
     image: caddy:latest
     container_name: autofill-caddy
     restart: always
+    env_file:
+      - ./backend-service/.env
+    environment:
+      - CADDY_DOMAIN=${CADDY_DOMAIN}
+      - CADDY_TLS=${CADDY_TLS}
+      - CADDY_ENCODING=${CADDY_ENCODING}
     ports:
       - "80:80"
       - "443:443"

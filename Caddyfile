@@ -1,10 +1,10 @@
 {
+    {$CADDY_TLS}
     email laithfadhala@gmail.com
 }
 
-localhost, autofillcopilot.com, www.autofillcopilot.com {
-    tls internal
-    encode gzip
+{$CADDY_DOMAIN} {
+    encode {$CADDY_ENCODING}
     reverse_proxy backend-service:8000
 
     handle_errors {
@@ -20,9 +20,11 @@ localhost, autofillcopilot.com, www.autofillcopilot.com {
         X-Frame-Options "DENY"
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "no-referrer-when-downgrade"
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
     }
 
     log {
         output file /var/log/caddy/access.log
+        format json
     }
 }
