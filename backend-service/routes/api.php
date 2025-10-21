@@ -23,6 +23,11 @@ Route::options('/{any}', function () {
     return response('', 200);
 })->where('any', '.*');
 
+// Health check endpoint
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
+
 // Public authentication routes
 Route::prefix('auth')->group(function () {
     // Protected authentication routes

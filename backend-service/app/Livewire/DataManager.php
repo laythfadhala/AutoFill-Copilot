@@ -80,6 +80,8 @@ class DataManager extends Component
                             $this->groupedDocuments[$fileName]['fields'][$key] = $value;
                         }
                     }
+                    // Sort fields alphabetically to remove length-based sorting
+                    ksort($this->groupedDocuments[$fileName]['fields']);
                 } else {
                     // This is a manual field
                     if (is_array($item)) {

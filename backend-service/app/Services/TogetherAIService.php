@@ -12,10 +12,10 @@ class TogetherAIService
     /**
      * Unified extraction prompt for document factual data
      */
-    private const EXTRACTION_PROMPT = <<<PROMPT
+    private const DOCUMENT_EXTRACTION_PROMPT = <<<PROMPT
         Extract only factual data from the document and return a single valid, compact JSON object.
         Keep strictly all:
-        - Names, addresses, dates, numbers, IDs, tax data, recipients, costs, rates, percentages, amounts, money, and contact or banking details.
+        - Names, addresses, notes, grades, dates, numbers, IDs, tax data, recipients, costs, rates, percentages, amounts, money, contact, banking or any other important details.
         Remove completely:
         - Any paragraphs or sentences explaining reasons, laws, legal rights, appeals, data protection, privacy, or instructions.
         Formatting rules:
@@ -44,7 +44,7 @@ class TogetherAIService
     /**
      * Clean markdown code blocks from AI response and extract JSON
      */
-    private function cleanMarkdownCodeBlocks(string $content): string
+    public function cleanMarkdownCodeBlocks(string $content): string
     {
         // Remove ```json or ``` markers
         $content = preg_replace('/^```(?:json)?\s*$/m', '', $content);
@@ -64,83 +64,19 @@ class TogetherAIService
     }
 
     /**
-     * Process a document file and extract data using AI
-     * @param string $filePath Path to the uploaded file
-     * @return array Extracted data from the document
-     */
-    public function processTextFromDocument(string $filePath): array
-    {
-        try {
-            // Check if API key is available
-            if (!$this->apiKey) {
-                return [
-                    'error' => 'AI service not configured. Please set TOGETHER_API_KEY in your .env file.',
-                    'success' => false,
-                    'error_type' => 'configuration'
-                ];
-            }
-
-            // Check if file exists
-            if (!file_exists($filePath)) {
-                return [
-                    'error' => 'File not found: ' . basename($filePath),
-                    'success' => false,
-                    'error_type' => 'file_not_found'
-                ];
-            }
-
-            // Get MIME type
-            $mimeType = mime_content_type($filePath);
-            Log::info('Processing file', ['file' => basename($filePath), 'mime_type' => $mimeType]);
-
-            // Check if MIME type is supported
-            if (!$this->textExtractor->supportsMimeType($mimeType)) {
-                return [
-                    'error' => 'Unsupported file type: ' . $mimeType . '. Supported types: PDF, images, and plain text files.',
-                    'success' => false,
-                    'error_type' => 'unsupported_file_type'
-                ];
-            }
-
-            // Extract text using the text extraction service
-            $text = $this->textExtractor->extractText($filePath, $mimeType);
-
-            if (empty($text)) {
-                return [
-                    'error' => 'Could not extract text from file. The file might be corrupted, empty, or in an unsupported format.',
-                    'success' => false,
-                    'error_type' => 'text_extraction_failed'
-                ];
-            }
-
-            // Send to AI API
-            $response = $this->callTogetherAI($text);
-
-            return [
-                'success' => true,
-                'data' => $response,
-                'raw_content' => $response
-            ];
-
-        } catch (Exception $e) {
-            Log::error('Document processing failed', [
-                'file' => $filePath,
-                'error' => $e->getMessage()
-            ]);
-            return [
-                'error' => 'Document processing failed: ' . $e->getMessage(),
-                'success' => false,
-                'error_type' => 'processing_error'
-            ];
-        }
-    }
-
-    /**
      * Call TogetherAI API with extracted text
      */
-    private function callTogetherAI(string $text): string
+    public function extractDataFrom(string $text): string
     {
-        $prompt = self::EXTRACTION_PROMPT . "\n" . $text;
+        if (!$this->apiKey) {
+            return [
+                'error' => 'AI service not configured. Please set TOGETHER_API_KEY in your .env file.',
+                'success' => false,
+                'error_type' => 'configuration'
+            ];
+        }
+
+        $prompt = self::DOCUMENT_EXTRACTION_PROMPT . "\n" . $text;
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,

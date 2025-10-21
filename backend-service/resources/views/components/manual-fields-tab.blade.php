@@ -12,7 +12,7 @@
                     <tr>
                         <th>Field Key</th>
                         <th>Field Value</th>
-                        <th class="ps-5">Actions</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>

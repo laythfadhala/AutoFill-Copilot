@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
+use App\Services\TextExtraction\TextExtractionService;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Exception;
 
 class ProcessDocument implements ShouldQueue, ShouldBeUnique
 {
@@ -23,6 +25,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
     protected $originalFilename;
     protected $profileId;
     protected $userId;
+    private TextExtractionService $textExtractor;
 
     /**
      * Create a new job instance.
@@ -33,6 +36,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
         $this->originalFilename = $originalFilename;
         $this->profileId = $profileId;
         $this->userId = $userId;
+        $this->textExtractor = app(TextExtractionService::class);
     }
 
     /**
@@ -41,6 +45,70 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
     public function uniqueId()
     {
         return $this->profileId.'-'.md5($this->filePath);
+    }
+
+    /**
+     * Process a document file and extract data using AI
+     * @param string $filePath Path to the uploaded file
+     * @return array Extracted data from the document
+     */
+    private function processTextFromDocument(string $filePath): array
+    {
+        try {
+            // Check if file exists
+            if (!file_exists($filePath)) {
+                return [
+                    'error' => 'File not found: ' . basename($filePath),
+                    'success' => false,
+                    'error_type' => 'file_not_found'
+                ];
+            }
+
+            // Get MIME type
+            $mimeType = mime_content_type($filePath);
+            Log::info('Processing file', ['file' => basename($filePath), 'mime_type' => $mimeType]);
+
+            // Check if MIME type is supported
+            if (!$this->textExtractor->supportsMimeType($mimeType)) {
+                return [
+                    'error' => 'Unsupported file type: ' . $mimeType . '. Supported types: PDF, images, and plain text files.',
+                    'success' => false,
+                    'error_type' => 'unsupported_file_type'
+                ];
+            }
+
+            // Extract text using the text extraction service
+            $text = $this->textExtractor->extractText($filePath, $mimeType);
+
+            if (empty($text)) {
+                return [
+                    'error' => 'Could not extract text from file. The file might be corrupted, empty, or in an unsupported format.',
+                    'success' => false,
+                    'error_type' => 'text_extraction_failed'
+                ];
+            }
+
+            // Send to AI API
+            $aiService = app(TogetherAIService::class);
+            $response = $aiService->extractDataFrom($text);
+
+            return [
+                'success' => true,
+                'data' => $response,
+                'raw_content' => $response
+            ];
+
+        } catch (Exception $e) {
+            Log::error('Document processing failed', [
+                'file' => $filePath,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'error' => 'Document processing failed: ' . $e->getMessage(),
+                'success' => false,
+                'error_type' => 'processing_error'
+            ];
+        }
     }
 
     /**
@@ -60,8 +128,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
             $fullPath = Storage::disk('public')->path($this->filePath);
 
             // Process with AI service
-            $aiService = app(TogetherAIService::class);
-            $aiResponse = $aiService->processTextFromDocument($fullPath);
+            $aiResponse = $this->processTextFromDocument($fullPath);
 
             // Check for processing errors
             if (isset($aiResponse['error'])) {
