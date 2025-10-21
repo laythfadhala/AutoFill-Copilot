@@ -1,6 +1,6 @@
 <div>
     <!-- Tab Navigation -->
-    <ul class="nav nav-tabs" role="tablist">
+    <ul class="nav nav-tabs flex-column flex-sm-row" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $activeTab === 'profiles' ? 'active' : '' }}" wire:click="setActiveTab('profiles')"
                 type="button">

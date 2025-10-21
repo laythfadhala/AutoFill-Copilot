@@ -7,35 +7,55 @@
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 100px 0;
+            padding: 80px 0;
         }
 
         .hero h1 {
-            font-size: 3rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
         }
 
         .hero p {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             margin-bottom: 2rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 60px 0;
+            }
+
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
         }
     </style>
 @endsection
 
 @section('navbar')
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
+    <nav class="navbar navbar-expand-md navbar-dark bg-primary">
+        <div class="container-fluid">
             <a class="navbar-brand" href="/">{{ config('app.public_name') }}</a>
-            <div class="navbar-nav ms-auto">
-                @if (Auth::check())
-                    <span class="navbar-text me-3">Welcome, {{ auth()->user()->name }}!</span>
-                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                    </form>
-                @else
-                    <a href="{{ route('login') }}" class="btn btn-outline-light">Sign In</a>
-                @endif
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    @if (Auth::check())
+                        <span class="navbar-text me-3">Welcome, {{ auth()->user()->name }}!</span>
+                        <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                        </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-outline-light">Sign In</a>
+                    @endif
+                </div>
             </div>
         </div>
     </nav>

@@ -65,21 +65,22 @@
 
     <div class="row">
         @forelse($profiles as $profile)
-            <div class="col-md-6 mb-3">
+            <div class="col-lg-6 col-md-12 mb-3">
                 <div class="card {{ $profile['is_default'] ? 'border-primary' : '' }}">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0">
+                    <div
+                        class="card-header d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center">
+                        <h6 class="mb-2 mb-sm-0">
                             {{ $profile['name'] }}
                             @if ($profile['is_default'])
                                 <span class="badge bg-primary">Default</span>
                             @endif
                         </h6>
-                        <div>
+                        <div class="d-flex flex-wrap gap-1">
                             <button wire:click="editProfile({{ $profile['id'] }})"
-                                class="btn btn-sm btn-outline-primary me-1">Edit</button>
+                                class="btn btn-sm btn-outline-primary">Edit</button>
                             <button wire:click="deleteProfile({{ $profile['id'] }})"
                                 wire:confirm="Are you sure you want to delete this profile?"
-                                class="btn btn-sm btn-outline-danger me-1">Delete</button>
+                                class="btn btn-sm btn-outline-danger">Delete</button>
                             @if (!$profile['is_default'])
                                 <button wire:click="setDefaultProfile({{ $profile['id'] }})"
                                     class="btn btn-sm btn-outline-success">Set Default</button>

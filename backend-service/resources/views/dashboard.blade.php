@@ -7,15 +7,21 @@
 @endsection
 
 @section('navbar')
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
+    <nav class="navbar navbar-expand-md navbar-dark bg-primary">
+        <div class="container-fluid">
             <a class="navbar-brand" href="{{ route('dashboard') }}">{{ config('app.public_name') }}</a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">Welcome, {{ auth()->user()->name }}!</span>
-                <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                    @csrf
-                    <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                </form>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <span class="navbar-text me-3">Welcome, {{ auth()->user()->name }}!</span>
+                    <form method="POST" action="{{ route('logout') }}" class="d-inline">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+                    </form>
+                </div>
             </div>
         </div>
     </nav>
