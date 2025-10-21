@@ -26,14 +26,6 @@
         "content/sync-auth.js"
       ],
       "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [],
-      "run_at": "document_end",
-      "all_frames": true
     }
   ],
   "permissions": [

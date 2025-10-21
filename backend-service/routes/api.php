@@ -36,23 +36,3 @@ Route::prefix('auth')->group(function () {
     });
 });
 
-// Protected routes - require authentication
-Route::middleware('auth:sanctum')->group(function () {
-
-    // User Management
-    Route::apiResource('users', UserController::class);
-
-    // User Profile Management
-    Route::apiResource('user-profiles', UserProfileController::class);
-    Route::get('users/{user}/default-profile', [UserProfileController::class, 'getDefault']);
-
-    // Form Mapping Management removed
-
-    // Legacy Profile management endpoints redirected to user-profiles resource
-    Route::prefix('profiles')->group(function () {
-        Route::get('/', [UserProfileController::class, 'index']);
-        Route::post('/', [UserProfileController::class, 'store']);
-    });
-
-    // AutoFill endpoints removed — feature deprecated and controller deleted
-});
