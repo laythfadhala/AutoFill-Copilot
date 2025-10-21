@@ -1,5 +1,5 @@
 // AutoFill Copilot Background Script
-const API_BASE_URL = 'https://localhost/api';
+const API_BASE_URL = 'http://localhost/api'; //TODO: replace with production URL
 
 // Handle extension messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -9,8 +9,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'checkAuth':
       handleCheckAuth(sendResponse);
       break;
-    case 'AUTH_LOGIN':
-      handleLogin(request.credentials, sendResponse);
+    case 'openLoginPage':
+      handleOpenLoginPage(sendResponse);
       break;
     case 'logout':
       handleLogout(sendResponse);
@@ -30,146 +30,75 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'updateFormCount':
       handleUpdateFormCount(request.count, request.url, sender.tab.id, sendResponse);
       break;
+    case 'storeToken':
+      handleStoreToken(request.token, sendResponse);
+      break;
   }
   
   return true;
 });
 
 async function handleCheckAuth(sendResponse) {
-  try {
-    const data = await chrome.storage.local.get(['authToken']);
-    
-    if (!data.authToken) {
-      sendResponse({ success: true, authenticated: false });
-      return;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
-      headers: {
-        'Authorization': `Bearer ${data.authToken}`,
-        'Accept': 'application/json'
+  chrome.storage.local.get(['authToken'], async (data) => {
+    try {
+      if (!data.authToken) {
+        sendResponse({ success: true, authenticated: false });
+        return;
       }
-    });
 
-    if (response.ok) {
-      const apiResponse = await response.json();
-      sendResponse({ 
-        success: true, 
-        authenticated: true, 
-        user: apiResponse.data.user, // Extract the actual user object
-        stats: { formsFilled: 0, timeSaved: 0 }
-      });
-    } else {
-      await chrome.storage.local.clear();
-      sendResponse({ success: true, authenticated: false });
-    }
-  } catch (error) {
-    console.error('Auth check error:', error);
-    sendResponse({ 
-      success: false, 
-      error: 'Cannot connect to server' 
-    });
-  }
-}
-
-async function handleLogin(credentials, sendResponse) {
-  try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify(credentials)
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.token) {
-      await chrome.storage.local.set({
-        authToken: data.token,
-        userProfile: data.user
+      const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+        headers: {
+          'Authorization': `Bearer ${data.authToken}`,
+          'Accept': 'application/json'
+        }
       });
 
-      sendResponse({ 
-        success: true, 
-        user: data.user
-      });
-    } else {
+      if (response.ok) {
+        const apiResponse = await response.json();
+        sendResponse({ 
+          success: true, 
+          authenticated: true, 
+          user: apiResponse.data.user,
+          stats: { formsFilled: 0, timeSaved: 0 }
+        });
+      } else {
+        chrome.storage.local.clear(() => {
+          sendResponse({ success: true, authenticated: false });
+        });
+      }
+    } catch (error) {
+      console.error('Auth check error:', error);
       sendResponse({ 
         success: false, 
-        error: data.message || 'Login failed' 
+        error: 'Cannot connect to server' 
       });
     }
-  } catch (error) {
-    sendResponse({ 
-      success: false, 
-      error: 'Cannot connect to server' 
-    });
-  }
+  });
 }
 
-async function handleLogout(sendResponse) {
-  await chrome.storage.local.clear();
+function handleOpenLoginPage(sendResponse) {
+  const loginUrl = API_BASE_URL.replace('/api', '') + '/signin';
+  chrome.tabs.create({ url: loginUrl });
   sendResponse({ success: true });
 }
 
-async function handleFillForm(tabId, sendResponse) {
-  try {
-    const data = await chrome.storage.local.get(['authToken']);
-    
-    if (!data.authToken) {
-      sendResponse({ success: false, error: 'Not authenticated' });
-      return;
-    }
-
-    // Get user info to get user ID
-    const userResponse = await fetch(`${API_BASE_URL}/auth/profile`, {
-      headers: {
-        'Authorization': `Bearer ${data.authToken}`,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!userResponse.ok) {
-      sendResponse({ success: false, error: 'Failed to get user data' });
-      return;
-    }
-
-    const userInfo = await userResponse.json();
-    const userId = userInfo.data.user.id;
-
-    // Get user's default profile with autofill data
-    const profileResponse = await fetch(`${API_BASE_URL}/users/${userId}/default-profile`, {
-      headers: {
-        'Authorization': `Bearer ${data.authToken}`,
-        'Accept': 'application/json'
-      }
-    });
-
-    if (!profileResponse.ok) {
-      sendResponse({ success: false, error: 'No autofill profile found. Please create one in settings.' });
-      return;
-    }
-
-    const profileData = await profileResponse.json();
-    const autofillData = profileData.data.data; // The actual form data is in data.data
-
-    await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['content/autofill-engine.js']
-    });
-
-    await chrome.tabs.sendMessage(tabId, {
-      action: 'TRIGGER_AUTOFILL',
-      userData: autofillData
-    });
-
+function handleStoreToken(token, sendResponse) {
+  console.log('Storing token:', token);
+  chrome.storage.local.set({ authToken: token }, () => {
+    console.log('Token stored');
     sendResponse({ success: true });
-  } catch (error) {
-    console.error('Fill form error:', error);
-    sendResponse({ success: false, error: 'Failed to fill form' });
-  }
+  });
+}
+
+function handleLogout(sendResponse) {
+  console.log('Logging out - clearing token');
+  chrome.storage.local.remove(['authToken'], () => {
+    console.log('Token cleared');
+    sendResponse({ success: true });
+  });
+}
+
+async function handleFillForm(tabId, sendResponse) {
 }
 
 async function handleClearForm(tabId, sendResponse) {

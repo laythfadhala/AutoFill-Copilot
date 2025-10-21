@@ -50,46 +50,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         showError(response.error);
     }
 
-    // Login button
-    elements.loginBtn.addEventListener('click', () => {
-        showState('loginForm');
-        elements.loginEmail.focus();
-    });
-
-    // Login form
-    elements.loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const email = elements.loginEmail.value.trim();
-        const password = elements.loginPassword.value.trim();
-
-        if (!email || !password) {
-            showError('Please enter email and password');
-            return;
-        }
-
-        showState('loading');
-        
-        const loginResponse = await chrome.runtime.sendMessage({ 
-            action: 'AUTH_LOGIN',
-            credentials: { email, password }
-        });
-
-        if (loginResponse.success) {
-            elements.loginEmail.value = '';
-            elements.loginPassword.value = '';
-            elements.userEmail.textContent = loginResponse.user.email;
-            showState('loggedIn');
-        } else {
-            showError(loginResponse.error);
+    // Listen for auth changes and update UI accordingly when token changes or removed from storage
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && changes.authToken) {
+            // Recheck auth when token changes
+            chrome.runtime.sendMessage({ action: 'checkAuth' }).then(response => {
+                if (response.success && response.authenticated) {
+                    elements.userEmail.textContent = response.user.email;
+                    showState('loggedIn');
+                } else {
+                    showState('loggedOut');
+                }
+            });
         }
     });
 
-    // Cancel login
-    elements.loginCancelBtn.addEventListener('click', () => {
-        elements.loginEmail.value = '';
-        elements.loginPassword.value = '';
-        showState('loggedOut');
+    // Login button - now opens web login page
+    elements.loginBtn.addEventListener('click', async () => {
+        const response = await chrome.runtime.sendMessage({ action: 'openLoginPage' });
+        if (response.success) {
+            // Wait a bit for user to login, then check auth
+            setTimeout(async () => {
+                const authResponse = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+                if (authResponse.success && authResponse.authenticated) {
+                    elements.userEmail.textContent = authResponse.user.email;
+                    showState('loggedIn');
+                } else {
+                    showState('loggedOut');
+                }
+            }, 5000); // 5 seconds
+        }
     });
 
     // Logout

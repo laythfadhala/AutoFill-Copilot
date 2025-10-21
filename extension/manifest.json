@@ -19,6 +19,16 @@
   "content_scripts": [
     {
       "matches": [
+        "http://localhost/*",
+        "https://localhost/*"
+      ],
+      "js": [
+        "content/sync-auth.js"
+      ],
+      "run_at": "document_start"
+    },
+    {
+      "matches": [
         "<all_urls>"
       ],
       "js": [

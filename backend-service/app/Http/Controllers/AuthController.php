@@ -24,13 +24,9 @@ class AuthController extends Controller
     {
         $googleUser = Socialite::driver('google')->user();
 
-        $user = User::where('google_id', $googleUser->id)->orWhere('email', $googleUser->email)->first();
+        $user = User::where('google_id', $googleUser->id)->where('email', $googleUser->email)->first();
 
-        if ($user) {
-            if (!$user->google_id) {
-                $user->update(['google_id' => $googleUser->id]);
-            }
-        } else {
+        if (! $user) {
             $user = User::create([
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
@@ -40,7 +36,9 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        $authToken = $user->createToken('auth_token')->plainTextToken;
+
+        return redirect()->route('dashboard')->with('auth_token', $authToken);
     }
 
     public function redirectToMicrosoft()
@@ -52,13 +50,9 @@ class AuthController extends Controller
     {
         $microsoftUser = Socialite::driver('microsoft')->user();
 
-        $user = User::where('microsoft_id', $microsoftUser->id)->orWhere('email', $microsoftUser->email)->first();
+        $user = User::where('microsoft_id', $microsoftUser->id)->where('email', $microsoftUser->email)->first();
 
-        if ($user) {
-            if (!$user->microsoft_id) {
-                $user->update(['microsoft_id' => $microsoftUser->id]);
-            }
-        } else {
+        if (! $user) {
             $user = User::create([
                 'name' => $microsoftUser->name,
                 'email' => $microsoftUser->email,
@@ -68,7 +62,9 @@ class AuthController extends Controller
 
         Auth::login($user);
 
-        return redirect('/dashboard');
+        $authToken = $user->createToken('auth_token')->plainTextToken;
+
+        return redirect()->route('dashboard')->with('auth_token', $authToken);
     }
 
     public function logout(Request $request)
@@ -78,6 +74,6 @@ class AuthController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect('/')->with('logged_out', true);
     }
 }

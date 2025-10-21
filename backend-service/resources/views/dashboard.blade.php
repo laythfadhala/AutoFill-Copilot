@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
+@extends('layouts.app')
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - {{ config('app.public_name') }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+@section('title', 'Dashboard')
+
+@section('styles')
     @livewireStyles
-</head>
+@endsection
 
-<body>
+@section('navbar')
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="{{ route('dashboard') }}">{{ config('app.public_name') }}</a>
@@ -23,7 +19,9 @@
             </div>
         </div>
     </nav>
+@endsection
 
+@section('content')
     <div class="container mt-4">
         <div class="row">
             <div class="col-md-12">
@@ -31,9 +29,22 @@
             </div>
         </div>
     </div>
+@endsection
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+@section('scripts')
     @livewireScripts
-</body>
 
-</html>
+    @if (Auth::check())
+        <script>
+            const token = "{{ session('auth_token') }}";
+            if (token) {
+                window.postMessage({
+                    type: 'loginSuccess',
+                    token: token
+                }, '*');
+            } else {
+                console.error('Auth token not found in session.');
+            }
+        </script>
+    @endif
+@endsection

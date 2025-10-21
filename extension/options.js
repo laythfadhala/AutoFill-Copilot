@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // Default options
     const defaultOptions = {
-        apiUrl: 'https://localhost',
+        apiUrl: 'http://localhost',
         autoFillEnabled: true,
         showIndicators: true,
         confirmBeforeFill: false,
