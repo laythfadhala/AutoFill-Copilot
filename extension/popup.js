@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         userEmail: document.getElementById('user-email'),
         loginBtn: document.getElementById('login-btn'),
         logoutBtn: document.getElementById('logout-btn'),
-        fillCurrentBtn: document.getElementById('fill-current-btn'),
-        clearFormBtn: document.getElementById('clear-form-btn'),
+    // fill/clear buttons removed (autofill disabled)
         optionsBtn: document.getElementById('options-btn'),
         optionsBtnLoggedIn: document.getElementById('options-btn-logged-in'),
         loginForm: document.getElementById('login-form'),
@@ -89,37 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showState('loggedOut');
     });
 
-    // Fill form
-    elements.fillCurrentBtn.addEventListener('click', async () => {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        
-        const fillResponse = await chrome.runtime.sendMessage({ 
-            action: 'fillForm',
-            tabId: tab.id 
-        });
-
-        if (fillResponse.success) {
-            window.close();
-        } else {
-            showError(fillResponse.error);
-        }
-    });
-
-    // Clear form
-    elements.clearFormBtn.addEventListener('click', async () => {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        
-        const clearResponse = await chrome.runtime.sendMessage({ 
-            action: 'clearForm',
-            tabId: tab.id 
-        });
-
-        if (clearResponse.success) {
-            window.close();
-        } else {
-            showError(clearResponse.error);
-        }
-    });
+    // Fill and Clear actions removed — autofill functionality is no longer available in this extension
 
     // Options button (logged out state)
     elements.optionsBtn?.addEventListener('click', () => {

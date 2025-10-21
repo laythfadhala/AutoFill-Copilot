@@ -13,9 +13,7 @@ This is the backend API service for AutoFill Copilot, built with Laravel 11. It 
 
 -   **User Authentication** - JWT-based authentication with Laravel Sanctum
 -   **Profile Management** - JSON-based user profile storage and management
--   **AutoFill Engine** - Intelligent form field analysis and mapping
--   **AI-Powered Analysis** - Integration with AI models for enhanced form understanding
--   **Form Mappings** - Domain-specific form learning and optimization
+    -- (AutoFill engine removed in this branch)
 -   **API Security** - Input validation, rate limiting, and secure data handling
 
 ## Key Features
@@ -36,8 +34,7 @@ app/
 │   ├── AuthController.php    # Authentication endpoints
 │   ├── UserController.php    # User management
 │   ├── UserProfileController.php  # Profile CRUD
-│   ├── FormMappingController.php  # Form mappings
-│   └── AutoFillController.php     # AutoFill engine
+│   └── FormMappingController.php  # (removed)
 ├── Models/                   # Eloquent Models
 │   ├── User.php             # User model
 │   ├── UserProfile.php      # Profile data model
@@ -63,9 +60,7 @@ app/
 
 ### Form Mappings Table
 
--   Domain-specific form field mappings
--   Usage tracking and analytics
--   Learning optimization data
+This feature has been removed from the codebase.
 
 ## 🚀 Local Development
 
@@ -118,8 +113,7 @@ See the main project README for complete API documentation. Key endpoints:
 
 -   `POST /api/auth/login` - User authentication
 -   `GET /api/user-profiles` - Profile management
--   `POST /api/autofill` - Form analysis and filling
--   `POST /api/autofill/analyze-ai` - AI-powered form analysis
+    -- (AutoFill endpoints removed)
 -   `GET /api/health` - Health check
 
 ## License

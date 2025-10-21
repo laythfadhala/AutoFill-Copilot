@@ -55,9 +55,10 @@ Intelligent form auto-fill browser extension powered by AI that securely detects
 
 ### Content Scripts
 
--   `content/form-detector.js` - Intelligent form detection and analysis
--   `content/autofill-engine.js` - Core form filling logic with AI-powered field mapping
--   `content/styles.css` - Styles for form indicators and UI elements
+-   `content/sync-auth.js` - Sync authentication between web app and extension
+-   `content/styles.css` - Styles for UI elements
+
+Note: In-page autofill and form-detection features have been removed in this branch.
 
 ### Resources
 
@@ -163,8 +164,7 @@ extension/
 ├── popup.html/js         # Extension popup
 ├── options.html/js       # Options page
 ├── content/              # Content scripts
-│   ├── form-detector.js  # Form detection engine
-│   ├── autofill-engine.js# Form filling logic
+│   ├── sync-auth.js      # Authentication sync (kept)
 │   └── styles.css        # UI styles
 └── icons/               # Extension icons
     ├── icon-16.png

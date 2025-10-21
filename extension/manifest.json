@@ -31,9 +31,7 @@
       "matches": [
         "<all_urls>"
       ],
-      "js": [
-        "content/autofill-engine.js"
-      ],
+      "js": [],
       "run_at": "document_end",
       "all_frames": true
     }
@@ -54,7 +52,6 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "content/*",
         "icons/*"
       ],
       "matches": [

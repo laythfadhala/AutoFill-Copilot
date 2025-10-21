@@ -3,10 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\AutoFillController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserProfileController;
-use App\Http\Controllers\Api\FormMappingController;
+// Form mapping feature removed
 
 /*
 |--------------------------------------------------------------------------
@@ -47,11 +46,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('user-profiles', UserProfileController::class);
     Route::get('users/{user}/default-profile', [UserProfileController::class, 'getDefault']);
 
-    // Form Mapping Management
-    Route::apiResource('form-mappings', FormMappingController::class);
-    Route::get('form-mappings/by-domain', [FormMappingController::class, 'getByDomain']);
-    Route::post('form-mappings/{formMapping}/track-usage', [FormMappingController::class, 'trackUsage']);
-    Route::get('users/{user}/popular-domains', [FormMappingController::class, 'getPopularDomains']);
+    // Form Mapping Management removed
 
     // Legacy Profile management endpoints redirected to user-profiles resource
     Route::prefix('profiles')->group(function () {
@@ -59,8 +54,5 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [UserProfileController::class, 'store']);
     });
 
-    // AutoFill endpoints
-    Route::post('/autofill', [AutoFillController::class, 'autofill']);
-    Route::post('/autofill/analyze', [AutoFillController::class, 'analyzeForm']);
-    Route::post('/autofill/analyze-ai', [AutoFillController::class, 'analyzeWithAi']);
+    // AutoFill endpoints removed — feature deprecated and controller deleted
 });

@@ -54,9 +54,7 @@ RESTful API service providing:
 
 -   🔐 **Authentication**: JWT tokens with Laravel Sanctum
 -   👤 **Profile Management**: JSON-based user profile storage
--   🎯 **AutoFill Engine**: Intelligent field mapping and form analysis
--   🤖 **AI Integration**: Together.xyz API for enhanced form understanding
--   🗂️ **Form Mapping**: Domain-specific form learning and optimization
+    -- (AutoFill engine removed in this branch)
 -   🛡️ **Security**: Input validation, rate limiting, and secure data handling
 
 ### 🗄️ Infrastructure
@@ -172,19 +170,14 @@ docker-compose up -d --build
 
 ### AutoFill Engine
 
-| Method | Endpoint                   | Description                           |
-| ------ | -------------------------- | ------------------------------------- |
-| `POST` | `/api/autofill`            | Analyze form and get fill suggestions |
-| `POST` | `/api/autofill/analyze`    | Analyze form without filling          |
-| `POST` | `/api/autofill/analyze-ai` | AI-powered form analysis              |
+The AutoFill engine has been removed from this branch. Endpoints related to in-page form analysis are deprecated.
 
 ### Form Mappings
 
-| Method | Endpoint                              | Description               |
-| ------ | ------------------------------------- | ------------------------- |
-| `GET`  | `/api/form-mappings`                  | List user's form mappings |
-| `GET`  | `/api/form-mappings/by-domain`        | Get mappings by domain    |
-| `POST` | `/api/form-mappings/{id}/track-usage` | Track mapping usage       |
+| Method | Endpoint | Description |
+| ------ | -------- | ----------- |
+
+<!-- Form mapping endpoints removed -->
 
 ### System
 
@@ -204,7 +197,7 @@ graph TB
   subgraph "Backend Service"
     B --> F[Auth Controller]
     B --> G[Profile Controller]
-    B --> H[AutoFill Controller]
+  %% AutoFill Controller removed from this branch
     B --> I[Form Mapping Controller]
   end
 ```
