@@ -3,8 +3,6 @@ const API_BASE_URL = 'http://localhost/api'; //TODO: replace with production URL
 
 // Handle extension messages
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  console.log('Background received message:', request.action);
-  
   switch (request.action) {
     case 'checkAuth':
       handleCheckAuth(sendResponse);
@@ -15,8 +13,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'logout':
       handleLogout(sendResponse);
       break;
-    // 'fillForm' handled directly by popup via direct tab messaging to content script
-    // clearForm and form counting removed — extension no longer performs page autofill
     case 'testApiConnection':
       handleTestApiConnection(request.apiUrl, sendResponse);
       break;
@@ -77,17 +73,13 @@ function handleOpenLoginPage(sendResponse) {
 }
 
 function handleStoreToken(token, sendResponse) {
-  console.log('Storing token:', token);
   chrome.storage.local.set({ authToken: token }, () => {
-    console.log('Token stored');
     sendResponse({ success: true });
   });
 }
 
 function handleLogout(sendResponse) {
-  console.log('Logging out - clearing token');
   chrome.storage.local.remove(['authToken'], () => {
-    console.log('Token cleared');
     sendResponse({ success: true });
   });
 }
@@ -151,12 +143,10 @@ function handleOptionsChanged(options, sendResponse) {
 
 // Initialize badge styling on extension startup
 chrome.runtime.onStartup.addListener(() => {
-  console.log('Extension startup - initializing badge');
   chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
 });
 
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log('Extension installed/updated - initializing badge');
   chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
   
   // Clear any existing badge data on fresh install

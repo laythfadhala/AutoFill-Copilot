@@ -2,8 +2,7 @@
 // Manages extension settings and preferences
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Options page loading...');
-    
+
     // Default options
     const defaultOptions = {
         apiUrl: 'http://localhost',

@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Popup loading...');
     
     const states = {
         loading: document.getElementById('loading-state'),
