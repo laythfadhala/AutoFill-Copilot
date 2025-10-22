@@ -138,7 +138,7 @@ class DocumentUpload extends Component
             if (!empty($errors)) {
                 $this->processingStatus .= " Some files had errors.";
             }
-            session()->flash('message', "Successfully queued {$queuedFiles} of {$totalFiles} documents for background processing!");
+            session()->flash('success', "Successfully queued {$queuedFiles} of {$totalFiles} documents for background processing!");
         } else {
             $this->processingStatus = 'No files were queued successfully.';
         }

@@ -4,11 +4,7 @@
         <button wire:click="openCreateForm" class="btn btn-primary btn-sm">Create New Profile</button>
     </div>
 
-    @if (session()->has('message'))
-        <div class="alert alert-success">
-            {{ session('message') }}
-        </div>
-    @endif
+    <x-toast />
 
     @if ($showCreateForm)
         <div class="card mb-4">

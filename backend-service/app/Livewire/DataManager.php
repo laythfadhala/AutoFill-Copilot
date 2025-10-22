@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\FlashesValidationErrors;
 use App\Models\UserProfile;
 use Livewire\Component;
 
 class DataManager extends Component
 {
+    use FlashesValidationErrors;
+
     public $profiles = [];
     public $selectedProfile = null;
     public $dataFields = [];
@@ -24,6 +27,11 @@ class DataManager extends Component
     protected $listeners = [
         'profileUpdated' => 'loadProfiles',
         'selectProfileFromManager' => 'selectProfileFromManager'
+    ];
+
+    protected $rules = [
+        'fieldKey' => 'required|max:255',
+        'fieldValue' => 'required|max:255',
     ];
 
     public function mount()
@@ -139,9 +147,9 @@ class DataManager extends Component
     {
         if (!$this->selectedProfile) return;
 
-        $this->validate([
-            'fieldKey' => 'required|string|max:255',
-            'fieldValue' => 'nullable',
+        $this->validateAndFlash([
+            'fieldKey' => $this->fieldKey,
+            'fieldValue' => $this->fieldValue,
         ]);
 
         $profile = UserProfile::find($this->selectedProfile['id']);
@@ -170,7 +178,7 @@ class DataManager extends Component
             $this->dataFields = $data['manual_fields'];
             $this->resetFieldForm();
             $this->calculateTotalFieldCount();
-            session()->flash('message', 'Field updated successfully!');
+            session()->flash('success', 'Field updated successfully!');
         }
     }
 
@@ -191,7 +199,7 @@ class DataManager extends Component
                 $this->manualFields = $data['manual_fields'];
                 $this->dataFields = $data['manual_fields'];
                 $this->calculateTotalFieldCount();
-                session()->flash('message', 'Field deleted successfully!');
+                session()->flash('success', 'Field deleted successfully!');
             }
         }
     }
@@ -209,9 +217,9 @@ class DataManager extends Component
     {
         if (!$this->selectedProfile || !$this->editingDocumentName) return;
 
-        $this->validate([
-            'fieldKey' => 'required|string|max:255',
-            'fieldValue' => 'nullable|string',
+        $this->validateAndFlash([
+            'fieldKey' => $this->fieldKey,
+            'fieldValue' => $this->fieldValue,
         ]);
 
         $profile = UserProfile::find($this->selectedProfile['id']);
@@ -233,7 +241,7 @@ class DataManager extends Component
             // Refresh the grouped data
             $this->selectProfile($this->selectedProfile['id']);
             $this->resetFieldForm();
-            session()->flash('message', 'Extracted field updated successfully!');
+            session()->flash('success', 'Extracted field updated successfully!');
         }
     }
 
@@ -254,7 +262,7 @@ class DataManager extends Component
 
             // Refresh the grouped data
             $this->selectProfile($this->selectedProfile['id']);
-            session()->flash('message', 'Extracted field deleted successfully!');
+            session()->flash('success', 'Extracted field deleted successfully!');
         }
     }
 
@@ -275,7 +283,7 @@ class DataManager extends Component
 
             // Refresh the grouped data
             $this->selectProfile($this->selectedProfile['id']);
-            session()->flash('message', 'Document group deleted successfully!');
+            session()->flash('success', 'Document group deleted successfully!');
         }
     }
 

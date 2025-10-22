@@ -1,7 +1,7 @@
 <!-- Manual Fields Tab -->
 <div class="tab-pane {{ $activeTab === 'manual' ? 'active' : '' }}">
     @if ($editingField === 'new')
-        @include('components.new-field-form-modal')
+        @include('components.livewire.new-field-form-modal')
     @endif
 
     @if (count($manualFields) > 0)
@@ -17,7 +17,8 @@
                 </thead>
                 <tbody>
                     @foreach ($manualFields as $key => $value)
-                        <x-field-row :type="'manual'" :fieldKey="$key" :fieldValue="$value" :isEditing="$editingField === 'manual' && $fieldKey == $key" />
+                        <x-livewire.field-row :type="'manual'" :fieldKey="$key" :fieldValue="$value" :isEditing="$editingField === 'manual' && $fieldKey == $key"
+                            wire:key="field-row-manual-{{ $key }}" />
                     @endforeach
                 </tbody>
             </table>

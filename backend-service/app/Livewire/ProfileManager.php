@@ -2,11 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Traits\FlashesValidationErrors;
 use Livewire\Component;
 use App\Models\UserProfile;
 
 class ProfileManager extends Component
 {
+    use FlashesValidationErrors;
+
     public $profiles = [];
     public $showCreateForm = false;
     public $editingProfile = null;
@@ -17,8 +20,8 @@ class ProfileManager extends Component
     public $is_active = true;
 
     protected $rules = [
-        'name' => 'required|string|max:255',
-        'type' => 'required|string|max:255',
+        'name' => 'required|max:255',
+        'type' => 'required|max:255',
         'is_default' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -55,7 +58,12 @@ class ProfileManager extends Component
 
     public function saveProfile()
     {
-        $this->validate();
+        $this->validateAndFlash([
+            'name' => $this->name,
+            'type' => $this->type,
+            'is_default' => $this->is_default,
+            'is_active' => $this->is_active,
+        ]);
 
         if ($profile = UserProfile::find($this->editingProfile)) {
             // Update existing profile
@@ -66,7 +74,7 @@ class ProfileManager extends Component
                 'is_active' => $this->is_active,
             ]);
 
-            session()->flash('message', 'Profile updated successfully!');
+            session()->flash('success', 'Profile updated successfully!');
         } else {
             // Create new profile
             UserProfile::create([
@@ -78,7 +86,7 @@ class ProfileManager extends Component
                 'data' => [],
             ]);
 
-            session()->flash('message', 'Profile created successfully!');
+            session()->flash('success', 'Profile created successfully!');
         }
 
         $this->resetForm();
@@ -93,7 +101,7 @@ class ProfileManager extends Component
         $profile = UserProfile::find($profileId);
         if ($profile && $profile->user_id === auth()->id()) {
             $profile->delete();
-            session()->flash('message', 'Profile deleted successfully!');
+            session()->flash('success', 'Profile deleted successfully!');
             $this->loadProfiles();
 
             // Emit event to refresh other components
@@ -110,7 +118,7 @@ class ProfileManager extends Component
         $profile = UserProfile::find($profileId);
         if ($profile && $profile->user_id === auth()->id()) {
             $profile->update(['is_default' => true]);
-            session()->flash('message', 'Default profile updated!');
+            session()->flash('success', 'Default profile updated!');
             $this->loadProfiles();
 
             // Emit event to refresh other components

@@ -1,12 +1,8 @@
 <div>
-    @if (session()->has('message'))
-        <div class="alert alert-success">
-            {{ session('message') }}
-        </div>
-    @endif
+    <x-toast />
 
     <div class="row">
-        @include('components.profile-selector')
+        @include('components.livewire.profile-selector')
 
         <!-- Data Fields -->
         <div class="col-lg-8 col-md-12" style="max-height: 80vh; overflow-y: auto;">
@@ -33,8 +29,8 @@
                     </ul>
 
                     <div class="tab-content mt-3">
-                        @include('components.extracted-data-tab')
-                        @include('components.manual-fields-tab')
+                        @include('components.livewire.extracted-data-tab')
+                        @include('components.livewire.manual-fields-tab')
                     </div>
                 </div>
             @else

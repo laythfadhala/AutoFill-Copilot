@@ -48,8 +48,9 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($documentGroup['fields'] as $key => $value)
-                                                <x-field-row :type="'extracted'" :fieldKey="$key" :fieldValue="$value"
-                                                    :isEditing="$editingField === 'extracted' && $editingDocumentName === $fileName && $originalFieldKey === $key" :fileName="$fileName" />
+                                                <x-livewire.field-row :type="'extracted'" :fieldKey="$key"
+                                                    :fieldValue="$value" :isEditing="$editingField === 'extracted' && $editingDocumentName === $fileName && $originalFieldKey === $key" :fileName="$fileName"
+                                                    wire:key="field-row-extracted-{{ $fileName }}-{{ $key }}" />
                                             @endforeach
                                         </tbody>
                                     </table>

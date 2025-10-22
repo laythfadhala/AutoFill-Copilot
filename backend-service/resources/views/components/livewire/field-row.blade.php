@@ -4,9 +4,9 @@
 <tr>
     @if ($isEditing)
         <td style="width: 30%;">
-            <input type="text" id="field-key-input-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
-                wire:model="{{ $type === 'extracted' ? 'fieldKey' : 'fieldKey' }}"
-                class="form-control form-control-sm w-100" placeholder="Field Key">
+            <textarea id="field-key-textarea-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
+                wire:model="{{ $type === 'extracted' ? 'fieldKey' : 'fieldKey' }}" class="form-control form-control-sm w-100"
+                rows="2" placeholder="Field Key">{{ $fieldKey }}</textarea>
         </td>
         <td style="width: 60%;">
             <textarea id="field-value-textarea-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
@@ -34,10 +34,10 @@
         </td>
         <td style="width: 60%;">
             <div class="d-flex align-items-start h-100">
-                @if (is_string($fieldValue))
-                    <span class="text-break w-100">{{ $fieldValue }}</span>
-                @elseif (is_array($fieldValue) || is_object($fieldValue))
+                @if (is_array($fieldValue) || is_object($fieldValue))
                     <code class="text-muted small w-100">{{ json_encode($fieldValue, JSON_PRETTY_PRINT) }}</code>
+                @else
+                    <span class="text-break w-100">{{ $fieldValue }}</span>
                 @endif
             </div>
         </td>
@@ -45,13 +45,13 @@
             <div class="btn-group btn-group-sm w-100">
                 @if (!is_array($fieldValue) && !is_object($fieldValue))
                     <button id="edit-btn-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
-                        wire:click="{{ $type === 'extracted' ? 'editExtractedField(\'' . addslashes($fileName) . '\', \'' . addslashes($fieldKey) . '\')' : 'editManualField(\'' . addslashes($fieldKey) . '\', \'' . addslashes(is_array($fieldValue) || is_object($fieldValue) ? json_encode($fieldValue) : $fieldValue) . '\')' }}"
+                        wire:click="{{ $type === 'extracted' ? 'editExtractedField(' . json_encode($fileName) . ', ' . json_encode($fieldKey) . ')' : 'editManualField(' . json_encode($fieldKey) . ', ' . json_encode($fieldValue) . ')' }}"
                         class="btn btn-outline-primary flex-fill" title="Edit field">
                         <i class="bi bi-pencil"></i>
                     </button>
                 @endif
                 <button id="delete-btn-{{ $type }}-{{ $fileName ?? '' }}-{{ $fieldKey }}"
-                    wire:click="{{ $type === 'extracted' ? 'deleteExtractedField(\'' . addslashes($fileName) . '\', \'' . addslashes($fieldKey) . '\')' : 'deleteManualField(\'' . addslashes($fieldKey) . '\')' }}"
+                    wire:click="{{ $type === 'extracted' ? 'deleteExtractedField(' . json_encode($fileName) . ', ' . json_encode($fieldKey) . ')' : 'deleteManualField(' . json_encode($fieldKey) . ')' }}"
                     wire:confirm="Are you sure you want to delete this {{ $type }} field?"
                     class="btn btn-outline-danger flex-fill" title="Delete field">
                     <i class="bi bi-trash"></i>

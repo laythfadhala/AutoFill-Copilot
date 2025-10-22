@@ -4,8 +4,8 @@
             <h5>Upload Documents for AI Processing</h5>
         </div>
         <div class="card-body">
-            @include('components.upload-form')
-            @include('components.processing-status')
+            @include('components.livewire.upload-form')
+            @include('components.livewire.processing-status')
         </div>
     </div>
 
