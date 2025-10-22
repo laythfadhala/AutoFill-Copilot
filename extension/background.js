@@ -13,9 +13,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'logout':
       handleLogout(sendResponse);
       break;
-    case 'optionsChanged':
-      handleOptionsChanged(request.options, sendResponse);
-      break;
     case 'storeToken':
       handleStoreToken(request.token, sendResponse);
       break;
@@ -79,25 +76,6 @@ function handleLogout(sendResponse) {
   chrome.storage.local.remove(['authToken'], () => {
     sendResponse({ success: true });
   });
-}
-
-// Handle options changes from options page
-function handleOptionsChanged(options, sendResponse) {
-  try {
-    // Handle any necessary updates when options change
-    console.log('Options updated:', options);
-    
-    // Update API base URL if it changed
-    if (options.apiUrl) {
-      // You could store this globally or update other parts of the extension
-      console.log('API URL updated to:', options.apiUrl);
-    }
-    
-    sendResponse({ success: true });
-  } catch (error) {
-    console.error('Options change error:', error);
-    sendResponse({ success: false, error: error.message });
-  }
 }
 
     // Form-counting, badge and related tab listeners removed along with autofill feature

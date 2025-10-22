@@ -12,8 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         userEmail: document.getElementById('user-email'),
         loginBtn: document.getElementById('login-btn'),
         logoutBtn: document.getElementById('logout-btn'),
-        optionsBtn: document.getElementById('options-btn'),
-        optionsBtnLoggedIn: document.getElementById('options-btn-logged-in'),
         retryBtn: document.getElementById('retry-btn')
     };
 
@@ -79,18 +77,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         showState('loading');
         const logoutResponse = await chrome.runtime.sendMessage({ action: 'logout' });
         showState('loggedOut');
-    });
-
-    // Options button (logged out state)
-    elements.optionsBtn?.addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
-        window.close();
-    });
-
-    // Options button (logged in state)
-    elements.optionsBtnLoggedIn?.addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL('options.html') });
-        window.close();
     });
 
     // Retry button
