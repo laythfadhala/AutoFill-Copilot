@@ -78,20 +78,14 @@ function handleLogout(sendResponse) {
   });
 }
 
-    // Form-counting, badge and related tab listeners removed along with autofill feature
-
-// Initialize badge styling on extension startup
+// Actions to perform on extension startup
 chrome.runtime.onStartup.addListener(() => {
-  chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
+  //
 });
 
+// Actions to perform on extension installation
 chrome.runtime.onInstalled.addListener((details) => {
-  chrome.action.setBadgeBackgroundColor({ color: '#4CAF50' });
-  
-  // Clear any existing badge data on fresh install
-  if (details.reason === 'install') {
-    // no form counts to clear
-  }
+  // 
 });
 
 
