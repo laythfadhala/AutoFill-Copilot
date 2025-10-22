@@ -32,14 +32,13 @@
     "storage",
     "activeTab",
     "scripting",
-    "tabs",
-    "unlimitedStorage",
     "contextMenus"
   ],
+  "optional_permissions": [
+    "notifications"
+  ],
   "host_permissions": [
-    "https://localhost/*",
-    "https://*/*",
-    "http://*/*"
+    "https://*/*"
   ],
   "web_accessible_resources": [
     {
