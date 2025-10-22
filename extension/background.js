@@ -13,9 +13,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'logout':
       handleLogout(sendResponse);
       break;
-    case 'testApiConnection':
-      handleTestApiConnection(request.apiUrl, sendResponse);
-      break;
     case 'optionsChanged':
       handleOptionsChanged(request.options, sendResponse);
       break;
@@ -27,6 +24,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   return true;
 });
 
+// Check authentication status and retrieve user profile info from API if authenticated
 async function handleCheckAuth(sendResponse) {
   chrome.storage.local.get(['authToken'], async (data) => {
     try {
@@ -83,43 +81,7 @@ function handleLogout(sendResponse) {
   });
 }
 
-// handleFillForm removed — popup now sends fill messages directly to the active tab's content script
-
-async function handleTestApiConnection(apiUrl, sendResponse) {
-  try {
-    if (!apiUrl) {
-      sendResponse({ success: false, error: 'API URL is required' });
-      return;
-    }
-
-    // Remove trailing slash if present
-    const baseUrl = apiUrl.replace(/\/$/, '');
-    
-    // Test with a simple health check or status endpoint
-    const response = await fetch(`${baseUrl}/api/health`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json'
-      }
-    });
-
-    if (response.ok) {
-      sendResponse({ success: true });
-    } else {
-      sendResponse({ 
-        success: false, 
-        error: `Server returned status ${response.status}` 
-      });
-    }
-  } catch (error) {
-    console.error('Test API connection error:', error);
-    sendResponse({ 
-      success: false, 
-      error: error.message || 'Connection failed' 
-    });
-  }
-}
-
+// Handle options changes from options page
 function handleOptionsChanged(options, sendResponse) {
   try {
     // Handle any necessary updates when options change

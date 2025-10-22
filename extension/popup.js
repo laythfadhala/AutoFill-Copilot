@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         loading: document.getElementById('loading-state'),
         error: document.getElementById('error-state'),
         loggedOut: document.getElementById('logged-out-state'),
-        loginForm: document.getElementById('login-form-state'),
         loggedIn: document.getElementById('logged-in-state')
     };
 
@@ -13,13 +12,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         userEmail: document.getElementById('user-email'),
         loginBtn: document.getElementById('login-btn'),
         logoutBtn: document.getElementById('logout-btn'),
-    // fill/clear buttons removed (autofill disabled)
         optionsBtn: document.getElementById('options-btn'),
         optionsBtnLoggedIn: document.getElementById('options-btn-logged-in'),
-        loginForm: document.getElementById('login-form'),
-        loginEmail: document.getElementById('login-email'),
-        loginPassword: document.getElementById('login-password'),
-        loginCancelBtn: document.getElementById('login-cancel-btn'),
         retryBtn: document.getElementById('retry-btn')
     };
 
@@ -35,7 +29,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         showState('error');
     }
 
-    // Initialize
+    // Initialize the first state
     showState('loading');
     const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
 
@@ -86,8 +80,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         const logoutResponse = await chrome.runtime.sendMessage({ action: 'logout' });
         showState('loggedOut');
     });
-
-    // Fill and Clear actions removed — autofill functionality is no longer available in this extension
 
     // Options button (logged out state)
     elements.optionsBtn?.addEventListener('click', () => {
