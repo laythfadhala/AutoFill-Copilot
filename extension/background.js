@@ -19,7 +19,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     case 'optionsChanged':
       handleOptionsChanged(request.options, sendResponse);
       break;
-    // updateFormCount removed — no client-side form counting
     case 'storeToken':
       handleStoreToken(request.token, sendResponse);
       break;
