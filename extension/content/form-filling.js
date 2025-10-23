@@ -45,9 +45,20 @@ function fillForms(filledData, forms) {
               const stringValue = String(value).toLowerCase();
               input.checked = value === '1' || value === 1 || value === true || stringValue === 'yes';
             } else if (input.type === 'radio') {
-              // For radio buttons, check if the value matches
-              if (input.value == value.toString()) {
-                input.checked = true;
+              // Handle radio button groups: find all radios with the same name
+              const radioGroup = pageForm.querySelectorAll(`input[type="radio"][name="${field.name}"]`);
+              if (radioGroup.length > 0) {
+                // Uncheck all radios in the group first
+                radioGroup.forEach(radio => {
+                  radio.checked = false;
+                });
+                // Check the radio whose value matches (case-insensitive)
+                const matchingRadio = Array.from(radioGroup).find(radio => radio.value.toLowerCase() == value.toString().toLowerCase());
+                if (matchingRadio) {
+                  matchingRadio.checked = true;
+                  // Trigger change event
+                  matchingRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                }
               }
             } else if (input.tagName === 'SELECT') {
               // For select dropdowns, find the option with matching value or text
