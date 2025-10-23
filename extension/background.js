@@ -272,7 +272,7 @@ chrome.runtime.onInstalled.addListener((details) => {
     // Create context menu for filling individual fields
     chrome.contextMenus.create({
         title: "Fill this field",
-        contexts: ["editable"],
+        contexts: ["all"],
         id: "fillField",
     });
 });
