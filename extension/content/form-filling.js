@@ -1,4 +1,14 @@
 // Form Filling Content Script
+
+let currentField = null;
+
+// Listen for right-click on form fields
+document.addEventListener("contextmenu", function (e) {
+    if (e.target.matches("input, select, textarea")) {
+        currentField = e.target;
+    }
+});
+
 function fillForms(filledData, forms) {
     let fieldsFilled = 0;
     let fieldsSkipped = 0;
@@ -212,6 +222,39 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         } catch (error) {
             console.error("Form filling error:", error);
             sendResponse({ success: false, error: error.message });
+        }
+    } else if (request.action === "checkCurrentField") {
+        sendResponse({ hasField: !!currentField });
+    } else if (request.action === "fillCurrentField") {
+        // Capture the field at the time of the request to avoid race conditions
+        const fieldToFill = currentField;
+        if (fieldToFill) {
+            const fieldInfo = createFieldInfo(fieldToFill);
+            if (fieldInfo) {
+                chrome.runtime.sendMessage(
+                    { action: "fillSingleField", fieldInfo: fieldInfo },
+                    (response) => {
+                        if (response && response.success) {
+                            const result = window.fillSingleField(
+                                fieldToFill,
+                                response.filledValue
+                            );
+                            sendResponse(result);
+                        } else {
+                            sendResponse({
+                                success: false,
+                                error: response
+                                    ? response.error
+                                    : "Unknown error",
+                            });
+                        }
+                    }
+                );
+            } else {
+                sendResponse({ success: false, error: "Invalid field" });
+            }
+        } else {
+            sendResponse({ success: false, error: "No field selected" });
         }
     }
     return true;

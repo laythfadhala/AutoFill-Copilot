@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\UserProfileController;
+use App\Http\Controllers\Api\FieldController;
 use App\Http\Controllers\Api\FormController;
 // Form mapping feature removed
 
@@ -23,14 +22,18 @@ Route::options('/{any}', function () {
 })->where('any', '.*');
 
 // Public authentication routes
-Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
-    // Protected authentication routes
-    Route::post('/logout', [AuthController::class, 'logout']);
-    Route::get('/profile', [AuthController::class, 'profile']);
-});
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix('auth')->group(function () {
+        Route::post('/logout', [AuthController::class, 'logout']);
+        Route::get('/profile', [AuthController::class, 'profile']);
+    });
 
-// Protected form routes
-Route::middleware('auth:sanctum')->prefix('forms')->group(function () {
-    Route::post('/fill', [FormController::class, 'fill']);
+    Route::prefix('forms')->group(function () {
+        Route::post('/fill', [FormController::class, 'fill']);
+    });
+
+    Route::prefix('fields')->group(function () {
+        Route::post('/fill', [FieldController::class, 'fill']);
+    });
 });
 

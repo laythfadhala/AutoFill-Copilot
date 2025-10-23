@@ -22,6 +22,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case "sendFormData":
             handleSendFormData(request.formData, sendResponse);
             break;
+        case "fillSingleField":
+            handleFillSingleField(request.fieldInfo, sendResponse, sender);
+            break;
     }
 
     return true;
@@ -193,6 +196,72 @@ async function handleSendFormData(formData, sendResponse) {
     }
 }
 
+async function handleFillSingleField(fieldInfo, sendResponse, sender) {
+    try {
+        // Get auth token
+        const data = await chrome.storage.local.get(["authToken"]);
+
+        if (!data.authToken) {
+            sendResponse({ success: false, error: "Not authenticated" });
+            return;
+        }
+
+        const tab = sender.tab;
+        // Create minimal formData for the single field
+        const formData = {
+            url: tab.url,
+            title: tab.title,
+            forms: [
+                {
+                    id: "singleField",
+                    action: tab.url,
+                    method: "GET",
+                    fields: [fieldInfo],
+                },
+            ],
+            timestamp: new Date().toISOString(),
+        };
+
+        // Send to API
+        const response = await fetch(`${API_BASE_URL}/forms/fill`, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${data.authToken}`,
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            },
+            body: JSON.stringify(formData),
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            if (
+                result.success &&
+                result.data.filled_data &&
+                result.data.filled_data[fieldInfo.name]
+            ) {
+                sendResponse({
+                    success: true,
+                    filledValue: result.data.filled_data[fieldInfo.name],
+                });
+            } else {
+                sendResponse({
+                    success: false,
+                    error: "No filled data for this field",
+                });
+            }
+        } else {
+            sendResponse({
+                success: false,
+                error: `API error: ${response.status}`,
+            });
+        }
+    } catch (error) {
+        console.error("Fill single field error:", error);
+        sendResponse({ success: false, error: error.message });
+    }
+}
+
 // Actions to perform on extension startup
 chrome.runtime.onStartup.addListener(() => {
     //
@@ -200,5 +269,17 @@ chrome.runtime.onStartup.addListener(() => {
 
 // Actions to perform on extension installation
 chrome.runtime.onInstalled.addListener((details) => {
-    //
+    // Create context menu for filling individual fields
+    chrome.contextMenus.create({
+        title: "Fill this field",
+        contexts: ["editable"],
+        id: "fillField",
+    });
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+    if (info.menuItemId === "fillField") {
+        chrome.tabs.sendMessage(tab.id, { action: "fillCurrentField" });
+    }
 });

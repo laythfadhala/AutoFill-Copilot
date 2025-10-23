@@ -25,6 +25,7 @@
             "js": [
                 "content/sync-auth.js",
                 "content/form-detection.js",
+                "content/field-filling.js",
                 "content/form-filling.js"
             ],
             "run_at": "document_start"
