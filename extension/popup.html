@@ -21,7 +21,7 @@
         <!-- Error State -->
         <div id="error-state" class="hidden">
             <div class="error" id="error-message"></div>
-            <button class="button" id="retry-btn">Retry</button>
+            <button class="button" id="form-fill-retry-btn">Retry</button>
         </div>
 
         <!-- Not Logged In State -->
@@ -55,12 +55,36 @@
                 </div>
             </div>
 
-            <button class="button" id="fill-current-btn">Fill Current Form</button>
+            <button class="button" id="fill-current-form-btn">Fill Current Form</button>
             <button class="button" id="clear-form-btn">Clear Form</button>
 
             <div class="actions">
                 <button class="button" id="settings-btn-logged-in">Settings</button>
                 <button class="button danger" id="logout-btn">Logout</button>
+            </div>
+        </div>
+
+        <!-- Filling Forms State -->
+        <div id="form-filling-state" class="hidden">
+            <div class="status">
+                <div class="status-icon processing"></div>
+                <div class="status-text">Filling Forms</div>
+            </div>
+
+            <div class="filling-progress">
+                <div class="spinner"></div>
+                <div class="form-filling-message" id="form-filling-message">Detecting form fields...</div>
+            </div>
+
+            <div class="filling-details">
+                <div class="detail-item">
+                    <span class="detail-label">Page:</span>
+                    <span class="detail-value" id="form-filling-page">Loading...</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Fields found:</span>
+                    <span class="detail-value" id="form-filling-fields">0</span>
+                </div>
             </div>
         </div>
     </div>

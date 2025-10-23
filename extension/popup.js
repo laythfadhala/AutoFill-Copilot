@@ -4,7 +4,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         loading: document.getElementById('loading-state'),
         error: document.getElementById('error-state'),
         loggedOut: document.getElementById('logged-out-state'),
-        loggedIn: document.getElementById('logged-in-state')
+        loggedIn: document.getElementById('logged-in-state'),
+        formFilling: document.getElementById('form-filling-state')
     };
 
     const elements = {
@@ -12,7 +13,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         userEmail: document.getElementById('user-email'),
         loginBtn: document.getElementById('login-btn'),
         logoutBtn: document.getElementById('logout-btn'),
-        retryBtn: document.getElementById('retry-btn')
+        fillCurrentFormBtn: document.getElementById('fill-current-form-btn'),
+        clearFormBtn: document.getElementById('clear-form-btn'),
+        formFillRetryBtn: document.getElementById('form-fill-retry-btn'),
+        formFillingMessage: document.getElementById('form-filling-message'),
+        formFillingPage: document.getElementById('form-filling-page'),
+        formFillingFields: document.getElementById('form-filling-fields')
     };
 
     function showState(stateName) {
@@ -80,7 +86,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Retry button
-    elements.retryBtn?.addEventListener('click', async () => {
+    elements.formFillRetryBtn?.addEventListener('click', async () => {
         showState('loading');
         const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
 
@@ -92,6 +98,80 @@ document.addEventListener('DOMContentLoaded', async () => {
         } else {
             showError(response.error);
         }
+    });
+
+    // Fill Current Form button
+    elements.fillCurrentFormBtn?.addEventListener('click', async () => {
+        try {
+            // Disable button to prevent multiple clicks
+            elements.fillCurrentFormBtn.disabled = true;
+            elements.fillCurrentFormBtn.textContent = 'Processing...';
+
+            // Show filling state
+            showState('formFilling');
+            elements.formFillingMessage.textContent = 'Detecting form fields...';
+            elements.formFillingPage.textContent = 'Loading...';
+            elements.formFillingFields.textContent = '0';
+
+            // First detect forms on the current page
+            const detectResponse = await chrome.runtime.sendMessage({ action: 'detectForms' });
+
+            if (!detectResponse.success) {
+                // Re-enable button and show error
+                elements.fillCurrentFormBtn.disabled = false;
+                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
+                showError('Failed to detect forms: ' + detectResponse.error);
+                return;
+            }
+
+            if (detectResponse.data.forms.length === 0) {
+                // Re-enable button and show error
+                elements.fillCurrentFormBtn.disabled = false;
+                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
+                showError('No forms found on this page');
+                return;
+            }
+
+            // Update progress
+            elements.formFillingMessage.textContent = 'Analyzing form structure...';
+            elements.formFillingPage.textContent = detectResponse.data.title || 'Current Page';
+            const totalFields = detectResponse.data.forms.reduce((sum, form) => sum + form.fields.length, 0);
+            elements.formFillingFields.textContent = totalFields;
+
+            // Send form data to backend for filling
+            elements.formFillingMessage.textContent = 'Filling forms with your data...';
+            const sendResponse = await chrome.runtime.sendMessage({
+                action: 'sendFormData',
+                formData: detectResponse.data
+            });
+
+            if (sendResponse.success) {
+                // Show success state briefly
+                elements.formFillingMessage.textContent = 'Forms filled successfully!';
+                elements.formFillingMessage.style.color = '#4CAF50';
+
+                // Wait a moment to show success, then return to logged in state
+                setTimeout(() => {
+                    elements.fillCurrentFormBtn.disabled = false;
+                    elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
+                    showState('loggedIn');
+                }, 1000);
+            } else {
+                // Re-enable button and show error
+                elements.fillCurrentFormBtn.disabled = false;
+                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
+                showError('Failed to fill forms: ' + sendResponse.error);
+            }
+        } catch (error) {
+            console.error('Fill form error:', error);
+            // Re-enable button and show error
+            elements.fillCurrentFormBtn.disabled = false;
+            elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
+            showError('An error occurred while processing forms');
+        }
+    });    // Clear Form button (placeholder for now)
+    elements.clearFormBtn?.addEventListener('click', async () => {
+        alert('Clear form functionality not implemented yet');
     });
 
 });

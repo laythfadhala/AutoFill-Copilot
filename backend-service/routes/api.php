@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\UserProfileController;
+use App\Http\Controllers\Api\FormController;
 // Form mapping feature removed
 
 /*
@@ -21,17 +22,15 @@ Route::options('/{any}', function () {
     return response('', 200);
 })->where('any', '.*');
 
-// Health check endpoint
-Route::get('/health', function () {
-    return response()->json(['status' => 'ok'], 200);
+// Public authentication routes
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+    // Protected authentication routes
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
 });
 
-// Public authentication routes
-Route::prefix('auth')->group(function () {
-    // Protected authentication routes
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/logout', [AuthController::class, 'logout']);
-        Route::get('/profile', [AuthController::class, 'profile']);
-    });
+// Protected form routes
+Route::middleware('auth:sanctum')->prefix('forms')->group(function () {
+    Route::post('/fill', [FormController::class, 'fill']);
 });
 

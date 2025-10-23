@@ -20,10 +20,12 @@
     {
       "matches": [
         "http://localhost/*",
-        "https://localhost/*"
+        "https://*/*"
       ],
       "js": [
-        "content/sync-auth.js"
+        "content/sync-auth.js",
+        "content/form-detection.js",
+        "content/form-filling.js"
       ],
       "run_at": "document_start"
     }

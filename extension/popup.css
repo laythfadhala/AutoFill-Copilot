@@ -105,6 +105,16 @@ body {
     background: #da190b;
 }
 
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.button:disabled:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
 .user-info {
     background: rgba(255, 255, 255, 0.1);
     padding: 12px;
@@ -198,4 +208,62 @@ body {
 
 .form-actions {
     margin-top: 15px;
+}
+
+/* Filling State Styles */
+.status-icon.processing {
+    background: #ff9800;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.filling-progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+}
+
+.form-filling-message {
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff3cd;
+}
+
+.filling-details {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+
+.detail-item:last-child {
+    margin-bottom: 0;
+}
+
+.detail-label {
+    opacity: 0.8;
+}
+
+.detail-value {
+    font-weight: 500;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }

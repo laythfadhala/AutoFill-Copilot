@@ -18,3 +18,8 @@ Route::get('/auth/google', [AuthController::class, 'redirectToGoogle'])->name('g
 Route::get('/auth/google/callback', [AuthController::class, 'handleGoogleCallback']);
 Route::get('/auth/microsoft', [AuthController::class, 'redirectToMicrosoft'])->name('microsoft.login');
 Route::get('/auth/microsoft/callback', [AuthController::class, 'handleMicrosoftCallback']);
+
+// Test form route for extension testing
+Route::get('/test-form', function () {
+    return view('test-form');
+})->name('test.form');

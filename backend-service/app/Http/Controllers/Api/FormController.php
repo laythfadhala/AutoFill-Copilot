@@ -1,0 +1,128 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use App\Models\UserProfile;
+use App\Services\TogetherAIService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Log;
+
+class FormController extends Controller
+{
+    /**
+     * Fill form fields with AI-generated data
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function fill(Request $request)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'url' => 'required|url',
+                'title' => 'required|string|max:255',
+                'forms' => 'required|array',
+                'forms.*.id' => 'required|integer',
+                'forms.*.action' => 'nullable|url',
+                'forms.*.method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE',
+                'forms.*.fields' => 'array',
+                'forms.*.fields.*.name' => 'nullable|string|max:255',
+                'forms.*.fields.*.type' => 'nullable|string|max:50',
+                'forms.*.fields.*.placeholder' => 'nullable|string|max:255',
+                'forms.*.fields.*.label' => 'nullable|string|max:255',
+                'forms.*.fields.*.options' => 'nullable|array',
+                'forms.*.fields.*.options.*.value' => 'nullable|string|max:255',
+                'forms.*.fields.*.options.*.text' => 'nullable|string|max:255',
+                'forms.*.fields.*.options.*.selected' => 'nullable|boolean',
+                'timestamp' => 'required|date'
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $formData = $request->all();
+
+            // Log the form filling request
+            Log::info('Form filling requested', [
+                'user_id' => auth()->id(),
+                'url' => $formData['url'],
+                'title' => $formData['title'],
+                'forms_count' => count($formData['forms']),
+                'timestamp' => $formData['timestamp']
+            ]);
+
+            // Get user's default active profile data
+            $userProfile = UserProfile::where('user_id', auth()->id())
+                ->where('is_active', true)
+                ->where('is_default', true)
+                ->first();
+
+            $profileData = null;
+            if ($userProfile && $userProfile->data) {
+                $profileData = $userProfile->data;
+                Log::info('Using user profile data for form filling', [
+                    'profile_id' => $userProfile->id,
+                    'profile_name' => $userProfile->name,
+                    'data_fields' => count($profileData)
+                ]);
+            } else {
+                Log::info('No active default profile found, using AI generation only');
+            }
+
+            // Use AI service to fill the forms with user profile data
+            $aiService = new TogetherAIService();
+            $filledData = $aiService->fillForm($formData, $profileData);
+
+            // Check if AI service returned an error
+            if (isset($filledData['error'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'AI service error',
+                    'error' => $filledData['error'],
+                    'error_type' => $filledData['error_type'] ?? 'unknown'
+                ], 500);
+            }
+
+            // Structure the response with filled form data
+            $response = [
+                'success' => true,
+                'message' => $profileData
+                    ? 'Form filled successfully using your profile data and AI assistance'
+                    : 'Form filled successfully with AI-generated data',
+                'data' => [
+                    'url' => $formData['url'],
+                    'title' => $formData['title'],
+                    'forms_filled' => count($formData['forms']),
+                    'total_fields' => collect($formData['forms'])->sum(function ($form) {
+                        return count($form['fields']);
+                    }),
+                    'filled_data' => $filledData,
+                    'profile_used' => $profileData ? true : false,
+                    'processed_at' => now()->toISOString()
+                ]
+            ];
+
+            return response()->json($response);
+
+        } catch (\Exception $e) {
+            Log::error('Form filling error', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred while filling form data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}
