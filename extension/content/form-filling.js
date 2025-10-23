@@ -19,11 +19,10 @@ function fillForms(filledData, forms) {
             fieldsSkipped++;
             return;
           }
-
-          // Find the field in the form
-          const input = pageForm.querySelector(`[name="${field.name}"]`) ||
-                       pageForm.querySelector(`#${field.name}`) ||
-                       pageForm.querySelector(`[name="${field.name}"]`);
+            const input = pageForm.querySelector(`[name="${field.name}"]`) ||
+                pageForm.querySelector(`#${field.name}`) ||
+                pageForm.querySelector(`[id="${field.name}"]`) ||
+                pageForm.querySelector(`[placeholder*="${field.name}"]`);
 
           if (!input) {
             console.warn(`Field ${field.name} not found in form ${formIndex}`);

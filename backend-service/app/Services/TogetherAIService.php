@@ -149,6 +149,7 @@ class TogetherAIService
         $prompt .= "\nINSTRUCTIONS:\n";
         $prompt .= "- Use the user's actual profile data when available and relevant\n";
         $prompt .= "- For names, emails, addresses, phone numbers: use profile data if available\n";
+        $prompt .= "- Ignore fields like passwords\n";
         $prompt .= "- For select dropdowns: choose the most appropriate option from available choices\n";
         $prompt .= "- For dates: use realistic dates (current or recent)\n";
         $prompt .= "- For text areas: generate 1-2 sentences of relevant content\n";
