@@ -28,6 +28,9 @@
                 "content/field-filling.js",
                 "content/form-filling.js"
             ],
+            "css": [
+                "content/styles.css"
+            ],
             "run_at": "document_start"
         }
     ],

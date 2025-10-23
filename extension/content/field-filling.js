@@ -1,4 +1,18 @@
 // Field Filling Utilities
+// Helper function to animate text typing effect
+function animateText(input, text, callback) {
+    console.log("Starting animation for: " + text);
+    let i = 0;
+    const interval = setInterval(() => {
+        input.value = text.substring(0, i);
+        i++;
+        if (i > text.length) {
+            clearInterval(interval);
+            if (callback) callback();
+        }
+    }, 10); // Increased to 100ms per character for better visibility
+}
+
 // Helper function to fill a single field
 function fillSingleField(input, value) {
     try {
@@ -50,9 +64,11 @@ function fillSingleField(input, value) {
             }
         } else {
             // For text inputs, textareas, date inputs, etc.
-            input.value = String(value);
-            // Trigger input event
-            input.dispatchEvent(new Event("input", { bubbles: true }));
+            const text = String(value);
+            animateText(input, text, () => {
+                // Trigger input event after animation completes
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+            });
         }
         return { success: true };
     } catch (error) {
