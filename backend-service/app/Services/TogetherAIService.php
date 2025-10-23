@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Services\TextExtraction\TextExtractionService;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
@@ -109,7 +108,7 @@ class TogetherAIService
     public function fillForm(array $formData, ?array $userProfileData = null): array
     {
         // Build the prompt with form field information and user data
-        $prompt = "Fill the following form fields using the user's profile data provided below. If a field can be filled from the user data, use that exact information. For fields that don't match the user data, leave them empty.\n\n";
+        $prompt = "Fill the following form fields using the user's data provided below. If a field can be filled from the user data, use that exact information. For fields that don't match the user data, leave them empty.\n\n";
 
         // Add user profile data if available
         if ($userProfileData && !empty($userProfileData)) {
@@ -147,9 +146,8 @@ class TogetherAIService
         }
 
         $prompt .= "\nINSTRUCTIONS:\n";
+        $prompt .= "- You are required to fill all fields where possible and do not remove any field\n";
         $prompt .= "- Use the user's actual profile data when available and relevant\n";
-        $prompt .= "- For names, emails, addresses, phone numbers: use profile data if available\n";
-        $prompt .= "- Ignore fields like passwords\n";
         $prompt .= "- For select dropdowns: choose the most appropriate option from available choices\n";
         $prompt .= "- For dates: use realistic dates (current or recent)\n";
         $prompt .= "- For text areas: generate 1-2 sentences of relevant content\n";

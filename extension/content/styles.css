@@ -2,138 +2,140 @@
 /* Styles for form detection indicators and UI elements */
 
 .autofill-indicator {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  position: absolute !important;
-  z-index: 2147483647 !important; /* Maximum z-index */
-  pointer-events: auto !important;
-  user-select: none !important;
-  transition: all 0.2s ease !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif !important;
+    position: absolute !important;
+    z-index: 2147483647 !important; /* Maximum z-index */
+    pointer-events: auto !important;
+    user-select: none !important;
+    transition: all 0.2s ease !important;
 }
 
 .autofill-indicator:hover {
-  transform: scale(1.05) !important;
-  opacity: 1 !important;
+    transform: scale(1.05) !important;
+    opacity: 1 !important;
 }
 
 .autofill-tooltip {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  white-space: nowrap !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    white-space: nowrap !important;
 }
 
 .autofill-icon {
-  font-size: 14px !important;
-  line-height: 1 !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
 }
 
 .autofill-text {
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  line-height: 1 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    line-height: 1 !important;
 }
 
 .autofill-btn {
-  background: rgba(255, 255, 255, 0.2) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  color: white !important;
-  padding: 2px 6px !important;
-  border-radius: 3px !important;
-  font-size: 10px !important;
-  font-weight: 500 !important;
-  cursor: pointer !important;
-  transition: all 0.15s ease !important;
-  margin-left: 4px !important;
+    background: rgba(255, 255, 255, 0.2) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    color: white !important;
+    padding: 2px 6px !important;
+    border-radius: 3px !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    margin-left: 4px !important;
 }
 
 .autofill-btn:hover {
-  background: rgba(255, 255, 255, 0.3) !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
+    background: rgba(255, 255, 255, 0.3) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .autofill-btn:active {
-  transform: scale(0.95) !important;
+    transform: scale(0.95) !important;
 }
 
 /* Enhanced form styling */
 .autofill-enhanced {
-  position: relative !important;
+    position: relative !important;
 }
 
 /* Field highlight animation */
 .autofill-filling {
-  animation: autofill-pulse 0.6s ease-in-out !important;
-  box-shadow: 0 0 0 2px #4CAF50 !important;
-  border-radius: 4px !important;
+    animation: autofill-pulse 0.6s ease-in-out !important;
+    box-shadow: 0 0 0 2px #4caf50 !important;
+    border-radius: 4px !important;
 }
 
 @keyframes autofill-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
-  }
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.3);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
 }
 
 /* Success notification */
 .autofill-notification {
-  position: fixed !important;
-  top: 20px !important;
-  right: 20px !important;
-  background: #4CAF50 !important;
-  color: white !important;
-  padding: 12px 16px !important;
-  border-radius: 8px !important;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-  z-index: 2147483647 !important;
-  opacity: 0 !important;
-  transform: translateX(100%) !important;
-  transition: all 0.3s ease !important;
-  pointer-events: none !important;
+    position: fixed !important;
+    top: 20px !important;
+    right: 20px !important;
+    background: #4caf50 !important;
+    color: white !important;
+    padding: 12px 16px !important;
+    border-radius: 8px !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    z-index: 2147483647 !important;
+    opacity: 0 !important;
+    transform: translateX(100%) !important;
+    transition: all 0.3s ease !important;
+    pointer-events: none !important;
 }
 
 .autofill-notification.show {
-  opacity: 1 !important;
-  transform: translateX(0) !important;
+    opacity: 1 !important;
+    transform: translateX(0) !important;
 }
 
 .autofill-notification.hide {
-  opacity: 0 !important;
-  transform: translateX(100%) !important;
+    opacity: 0 !important;
+    transform: translateX(100%) !important;
 }
 
 /* Error notification */
 .autofill-notification.error {
-  background: #f44336 !important;
+    background: #f44336 !important;
 }
 
 .autofill-notification.warning {
-  background: #ff9800 !important;
+    background: #ff9800 !important;
 }
 
 /* Loading indicator */
 .autofill-loading {
-  display: inline-block !important;
-  width: 12px !important;
-  height: 12px !important;
-  border: 2px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 50% !important;
-  border-top-color: white !important;
-  animation: autofill-spin 1s ease-in-out infinite !important;
-  margin-right: 6px !important;
+    display: inline-block !important;
+    width: 12px !important;
+    height: 12px !important;
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-radius: 50% !important;
+    border-top-color: white !important;
+    animation: autofill-spin 1s ease-in-out infinite !important;
+    margin-right: 6px !important;
 }
 
 @keyframes autofill-spin {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* Field type indicators (subtle) */
@@ -141,63 +143,63 @@
 .autofill-field-password::before,
 .autofill-field-phone::before,
 .autofill-field-name::before {
-  content: '';
-  position: absolute;
-  left: -3px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 60%;
-  border-radius: 1px;
-  opacity: 0.6;
+    content: "";
+    position: absolute;
+    left: -3px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 60%;
+    border-radius: 1px;
+    opacity: 0.6;
 }
 
 .autofill-field-email::before {
-  background: #2196F3; /* Blue for email */
+    background: #2196f3; /* Blue for email */
 }
 
 .autofill-field-password::before {
-  background: #f44336; /* Red for password */
+    background: #f44336; /* Red for password */
 }
 
 .autofill-field-phone::before {
-  background: #4CAF50; /* Green for phone */
+    background: #4caf50; /* Green for phone */
 }
 
 .autofill-field-name::before {
-  background: #FF9800; /* Orange for name */
+    background: #ff9800; /* Orange for name */
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .autofill-indicator {
-    font-size: 10px !important;
-    padding: 3px 6px !important;
-  }
-  
-  .autofill-text {
-    display: none !important;
-  }
-  
-  .autofill-notification {
-    top: 10px !important;
-    right: 10px !important;
-    left: 10px !important;
-    transform: translateY(-100%) !important;
-  }
-  
-  .autofill-notification.show {
-    transform: translateY(0) !important;
-  }
-  
-  .autofill-notification.hide {
-    transform: translateY(-100%) !important;
-  }
+    .autofill-indicator {
+        font-size: 10px !important;
+        padding: 3px 6px !important;
+    }
+
+    .autofill-text {
+        display: none !important;
+    }
+
+    .autofill-notification {
+        top: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        transform: translateY(-100%) !important;
+    }
+
+    .autofill-notification.show {
+        transform: translateY(0) !important;
+    }
+
+    .autofill-notification.hide {
+        transform: translateY(-100%) !important;
+    }
 }
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
-  .autofill-notification {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
-  }
+    .autofill-notification {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    }
 }

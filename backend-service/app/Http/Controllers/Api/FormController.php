@@ -22,19 +22,19 @@ class FormController extends Controller
         try {
             $validator = Validator::make($request->all(), [
                 'url' => 'required|url',
-                'title' => 'required|string|max:255',
+                'title' => 'required|string|max:512',
                 'forms' => 'required|array',
-                'forms.*.id' => 'required|integer',
+                'forms.*.id' => 'required',
                 'forms.*.action' => 'nullable|url',
                 'forms.*.method' => 'nullable|string|in:GET,POST,PUT,PATCH,DELETE',
                 'forms.*.fields' => 'array',
-                'forms.*.fields.*.name' => 'nullable|string|max:255',
+                'forms.*.fields.*.name' => 'nullable|string|max:512',
                 'forms.*.fields.*.type' => 'nullable|string|max:50',
-                'forms.*.fields.*.placeholder' => 'nullable|string|max:255',
-                'forms.*.fields.*.label' => 'nullable|string|max:255',
+                'forms.*.fields.*.placeholder' => 'nullable|string|max:512',
+                'forms.*.fields.*.label' => 'nullable|string|max:512',
                 'forms.*.fields.*.options' => 'nullable|array',
-                'forms.*.fields.*.options.*.value' => 'nullable|string|max:255',
-                'forms.*.fields.*.options.*.text' => 'nullable|string|max:255',
+                'forms.*.fields.*.options.*.value' => 'nullable|string|max:512',
+                'forms.*.fields.*.options.*.text' => 'nullable|string|max:512',
                 'forms.*.fields.*.options.*.selected' => 'nullable|boolean',
                 'timestamp' => 'required|date'
             ]);

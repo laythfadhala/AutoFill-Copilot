@@ -1,177 +1,196 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    
+document.addEventListener("DOMContentLoaded", async () => {
     const states = {
-        loading: document.getElementById('loading-state'),
-        error: document.getElementById('error-state'),
-        loggedOut: document.getElementById('logged-out-state'),
-        loggedIn: document.getElementById('logged-in-state'),
-        formFilling: document.getElementById('form-filling-state')
+        loading: document.getElementById("loading-state"),
+        error: document.getElementById("error-state"),
+        loggedOut: document.getElementById("logged-out-state"),
+        loggedIn: document.getElementById("logged-in-state"),
+        formFilling: document.getElementById("form-filling-state"),
     };
 
     const elements = {
-        errorMessage: document.getElementById('error-message'),
-        userEmail: document.getElementById('user-email'),
-        loginBtn: document.getElementById('login-btn'),
-        logoutBtn: document.getElementById('logout-btn'),
-        fillCurrentFormBtn: document.getElementById('fill-current-form-btn'),
-        clearFormBtn: document.getElementById('clear-form-btn'),
-        formFillRetryBtn: document.getElementById('form-fill-retry-btn'),
-        formFillingMessage: document.getElementById('form-filling-message'),
-        formFillingPage: document.getElementById('form-filling-page'),
-        formFillingFields: document.getElementById('form-filling-fields')
+        errorMessage: document.getElementById("error-message"),
+        userEmail: document.getElementById("user-email"),
+        loginBtn: document.getElementById("login-btn"),
+        logoutBtn: document.getElementById("logout-btn"),
+        fillCurrentFormBtn: document.getElementById("fill-current-form-btn"),
+        clearFormBtn: document.getElementById("clear-form-btn"),
+        formFillRetryBtn: document.getElementById("form-fill-retry-btn"),
+        formFillingMessage: document.getElementById("form-filling-message"),
+        formFillingPage: document.getElementById("form-filling-page"),
+        formFillingFields: document.getElementById("form-filling-fields"),
     };
 
     function showState(stateName) {
-        Object.values(states).forEach(el => el.classList.add('hidden'));
+        Object.values(states).forEach((el) => el.classList.add("hidden"));
         if (states[stateName]) {
-            states[stateName].classList.remove('hidden');
+            states[stateName].classList.remove("hidden");
         }
     }
 
     function showError(message) {
         elements.errorMessage.textContent = message;
-        showState('error');
+        showState("error");
     }
 
     // Initialize the first state
-    showState('loading');
-    const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+    showState("loading");
+    const response = await chrome.runtime.sendMessage({ action: "checkAuth" });
 
     if (response.success && response.authenticated) {
         elements.userEmail.textContent = response.user.email;
-        showState('loggedIn');
+        showState("loggedIn");
     } else if (response.success) {
-        showState('loggedOut');
+        showState("loggedOut");
     } else {
         showError(response.error);
     }
 
     // Listen for auth changes and update UI accordingly when token changes or removed from storage
     chrome.storage.onChanged.addListener((changes, namespace) => {
-        if (namespace === 'local' && changes.authToken) {
+        if (namespace === "local" && changes.authToken) {
             // Recheck auth when token changes
-            chrome.runtime.sendMessage({ action: 'checkAuth' }).then(response => {
-                if (response.success && response.authenticated) {
-                    elements.userEmail.textContent = response.user.email;
-                    showState('loggedIn');
-                } else {
-                    showState('loggedOut');
-                }
-            });
+            chrome.runtime
+                .sendMessage({ action: "checkAuth" })
+                .then((response) => {
+                    if (response.success && response.authenticated) {
+                        elements.userEmail.textContent = response.user.email;
+                        showState("loggedIn");
+                    } else {
+                        showState("loggedOut");
+                    }
+                });
         }
     });
 
     // Login button - now opens web login page
-    elements.loginBtn.addEventListener('click', async () => {
-        const response = await chrome.runtime.sendMessage({ action: 'openLoginPage' });
+    elements.loginBtn.addEventListener("click", async () => {
+        const response = await chrome.runtime.sendMessage({
+            action: "openLoginPage",
+        });
         if (response.success) {
             // Wait a bit for user to login, then check auth
             setTimeout(async () => {
-                const authResponse = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+                const authResponse = await chrome.runtime.sendMessage({
+                    action: "checkAuth",
+                });
                 if (authResponse.success && authResponse.authenticated) {
                     elements.userEmail.textContent = authResponse.user.email;
-                    showState('loggedIn');
+                    showState("loggedIn");
                 } else {
-                    showState('loggedOut');
+                    showState("loggedOut");
                 }
             }, 5000); // 5 seconds
         }
     });
 
     // Logout
-    elements.logoutBtn.addEventListener('click', async () => {
-        showState('loading');
-        const logoutResponse = await chrome.runtime.sendMessage({ action: 'logout' });
-        showState('loggedOut');
+    elements.logoutBtn.addEventListener("click", async () => {
+        showState("loading");
+        const logoutResponse = await chrome.runtime.sendMessage({
+            action: "logout",
+        });
+        showState("loggedOut");
     });
 
     // Retry button
-    elements.formFillRetryBtn?.addEventListener('click', async () => {
-        showState('loading');
-        const response = await chrome.runtime.sendMessage({ action: 'checkAuth' });
+    elements.formFillRetryBtn?.addEventListener("click", async () => {
+        showState("loading");
+        const response = await chrome.runtime.sendMessage({
+            action: "checkAuth",
+        });
 
         if (response.success && response.authenticated) {
-            elements.userEmail.textContent = response.user.email || 'User';
-            showState('loggedIn');
+            elements.userEmail.textContent = response.user.email || "User";
+            showState("loggedIn");
         } else if (response.success) {
-            showState('loggedOut');
+            showState("loggedOut");
         } else {
             showError(response.error);
         }
     });
 
     // Fill Current Form button
-    elements.fillCurrentFormBtn?.addEventListener('click', async () => {
+    elements.fillCurrentFormBtn?.addEventListener("click", async () => {
         try {
             // Disable button to prevent multiple clicks
             elements.fillCurrentFormBtn.disabled = true;
-            elements.fillCurrentFormBtn.textContent = 'Processing...';
+            elements.fillCurrentFormBtn.textContent = "Processing...";
 
             // Show filling state
-            showState('formFilling');
-            elements.formFillingMessage.textContent = 'Detecting form fields...';
-            elements.formFillingPage.textContent = 'Loading...';
-            elements.formFillingFields.textContent = '0';
+            showState("formFilling");
+            elements.formFillingMessage.textContent =
+                "Detecting form fields...";
+            elements.formFillingPage.textContent = "Loading...";
+            elements.formFillingFields.textContent = "0";
 
             // First detect forms on the current page
-            const detectResponse = await chrome.runtime.sendMessage({ action: 'detectForms' });
+            const detectResponse = await chrome.runtime.sendMessage({
+                action: "detectForms",
+            });
 
             if (!detectResponse.success) {
                 // Re-enable button and show error
                 elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
-                showError('Failed to detect forms: ' + detectResponse.error);
+                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
+                showError("Failed to detect forms: " + detectResponse.error);
                 return;
             }
 
             if (detectResponse.data.forms.length === 0) {
                 // Re-enable button and show error
                 elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
-                showError('No forms found on this page');
+                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
+                showError("No forms found on this page");
                 return;
             }
 
             // Update progress
-            elements.formFillingMessage.textContent = 'Analyzing form structure...';
-            elements.formFillingPage.textContent = detectResponse.data.title || 'Current Page';
-            const totalFields = detectResponse.data.forms.reduce((sum, form) => sum + form.fields.length, 0);
+            elements.formFillingMessage.textContent =
+                "Analyzing form structure...";
+            elements.formFillingPage.textContent =
+                detectResponse.data.title || "Current Page";
+            const totalFields = detectResponse.data.forms.reduce(
+                (sum, form) => sum + form.fields.length,
+                0
+            );
             elements.formFillingFields.textContent = totalFields;
 
             // Send form data to backend for filling
-            elements.formFillingMessage.textContent = 'Filling forms with your data...';
+            elements.formFillingMessage.textContent =
+                "Filling forms with your data...";
             const sendResponse = await chrome.runtime.sendMessage({
-                action: 'sendFormData',
-                formData: detectResponse.data
+                action: "sendFormData",
+                formData: detectResponse.data,
             });
 
             if (sendResponse.success) {
                 // Show success state briefly
-                elements.formFillingMessage.textContent = 'Forms filled successfully!';
-                elements.formFillingMessage.style.color = '#4CAF50';
+                elements.formFillingMessage.textContent =
+                    "Forms filled successfully!";
+                elements.formFillingMessage.style.color = "#4CAF50";
 
                 // Wait a moment to show success, then return to logged in state
                 setTimeout(() => {
                     elements.fillCurrentFormBtn.disabled = false;
-                    elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
-                    showState('loggedIn');
+                    elements.fillCurrentFormBtn.textContent =
+                        "Fill Current Form";
+                    showState("loggedIn");
                 }, 1000);
             } else {
                 // Re-enable button and show error
                 elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
-                showError('Failed to fill forms: ' + sendResponse.error);
+                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
+                showError("Failed to fill forms: " + sendResponse.error);
             }
         } catch (error) {
-            console.error('Fill form error:', error);
+            console.error("Fill form error:", error);
             // Re-enable button and show error
             elements.fillCurrentFormBtn.disabled = false;
-            elements.fillCurrentFormBtn.textContent = 'Fill Current Form';
-            showError('An error occurred while processing forms');
+            elements.fillCurrentFormBtn.textContent = "Fill Current Form";
+            showError("An error occurred while processing forms");
         }
-    });    // Clear Form button (placeholder for now)
-    elements.clearFormBtn?.addEventListener('click', async () => {
-        alert('Clear form functionality not implemented yet');
+    }); // Clear Form button (placeholder for now)
+    elements.clearFormBtn?.addEventListener("click", async () => {
+        alert("Clear form functionality not implemented yet");
     });
-
 });

@@ -7,7 +7,8 @@
 body {
     width: 320px;
     min-height: 400px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
 }
@@ -51,7 +52,7 @@ body {
 }
 
 .status-icon.online {
-    background: #4CAF50;
+    background: #4caf50;
 }
 
 .status-icon.offline {
@@ -88,8 +89,8 @@ body {
 }
 
 .button.primary {
-    background: #4CAF50;
-    border-color: #4CAF50;
+    background: #4caf50;
+    border-color: #4caf50;
 }
 
 .button.primary:hover {
@@ -173,7 +174,9 @@ body {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .hidden {
@@ -200,9 +203,9 @@ body {
     width: 100%;
     padding: 8px;
     margin: 5px 0 10px 0;
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 4px;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
     color: white;
 }
 
@@ -217,9 +220,15 @@ body {
 }
 
 @keyframes pulse {
-    0% { opacity: 1; }
-    50% { opacity: 0.5; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+    100% {
+        opacity: 1;
+    }
 }
 
 .filling-progress {
