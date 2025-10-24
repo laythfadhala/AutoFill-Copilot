@@ -7,6 +7,7 @@ var EXCLUDED_FIELD_TYPES = [
     "image",
     "search",
     "password",
+    "file",
 ];
 var EXCLUDED_FIELD_NAMES = [
     "csrf_token",
@@ -140,7 +141,8 @@ function getFieldLabel(input) {
     let parent = input.parentElement;
     while (parent && parent.tagName !== "FORM") {
         if (parent.tagName === "LABEL") {
-            return parent.textContent.trim();
+            const labelText = parent.textContent.trim();
+            return labelText.slice(0, 32); // ✅ return only first 32 characters
         }
         parent = parent.parentElement;
     }

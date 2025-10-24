@@ -1,3 +1,6 @@
+// AutoFill Copilot Popup Script
+const BASE_URL = "http://localhost"; // TODO: replace with production URL
+
 document.addEventListener("DOMContentLoaded", async () => {
     // Initialize floating button
     await initializeFloatingButton();
@@ -22,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         formFillingPage: document.getElementById("form-filling-page"),
         formFillingFields: document.getElementById("form-filling-fields"),
         profileSelect: document.getElementById("profile-select"),
+        dashboardBtn: document.getElementById("dashboard-btn-logged-in"),
     };
 
     function showState(stateName) {
@@ -141,6 +145,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         // Clear selected profile from storage on logout
         await chrome.storage.local.remove(["selectedProfileId"]);
         showState("loggedOut");
+    });
+
+    // Dashboard button
+    elements.dashboardBtn.addEventListener("click", async () => {
+        // Open dashboard in new tab
+        const dashboardUrl = BASE_URL + "/dashboard";
+        await chrome.tabs.create({ url: dashboardUrl });
     });
 
     // Profile selection change listener

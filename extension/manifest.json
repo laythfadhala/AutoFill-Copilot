@@ -50,7 +50,8 @@
         "storage",
         "activeTab",
         "scripting",
-        "contextMenus"
+        "contextMenus",
+        "tabs"
     ],
     "optional_permissions": [
         "notifications"
