@@ -238,7 +238,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (fieldToFill) {
             const fieldInfo = createFieldInfo(fieldToFill);
             if (fieldInfo) {
-                injectPulseStyle();
+                if (typeof injectPulseStyle === "function") {
+                    injectPulseStyle();
+                }
                 // Add pulse ring animation to the field before filling
                 fieldToFill.classList.add("autofill-pulse-ring");
                 chrome.runtime.sendMessage(
