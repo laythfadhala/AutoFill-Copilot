@@ -7,12 +7,6 @@ const allowedOrigins = [
 ];
 
 window.addEventListener("message", (event) => {
-    console.log(
-        "Content script received message:",
-        event.data,
-        "from",
-        event.origin
-    );
     // Only accept messages from localhost
     if (!allowedOrigins.includes(event.origin)) {
         console.log("Ignoring message from", event.origin);

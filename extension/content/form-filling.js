@@ -175,11 +175,8 @@ function fillForms(filledData, forms) {
                                 new Event("input", { bubbles: true })
                             );
                         }
-
                         fieldsFilled++;
-                        console.log(
-                            `Filled field ${field.name} with value: ${value}`
-                        );
+
                         // Add pulse ring animation to the input before filling
                         input.classList.add("autofill-pulse-ring");
 

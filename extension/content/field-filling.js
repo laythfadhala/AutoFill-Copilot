@@ -1,7 +1,6 @@
 // Field Filling Utilities
 // Helper function to animate text typing effect
 function animateText(input, text, callback) {
-    console.log("Starting animation for: " + text);
     let i = 0;
     const interval = setInterval(() => {
         input.value = text.substring(0, i);
