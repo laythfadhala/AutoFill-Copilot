@@ -1,6 +1,10 @@
 // Form Filling Content Script
-
 var currentField = null;
+
+// Inject pulse style if not already present
+if (typeof injectPulseStyle === "function") {
+    injectPulseStyle();
+}
 
 // Listen for right-click on form fields
 document.addEventListener("contextmenu", function (e) {
@@ -238,12 +242,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (fieldToFill) {
             const fieldInfo = createFieldInfo(fieldToFill);
             if (fieldInfo) {
-                // Inject pulse style (will wait for DOM if needed)
-                if (typeof injectPulseStyle === "function") {
-                    injectPulseStyle();
-                    // Add pulse ring animation to the field before filling
-                    fieldToFill.classList.add("autofill-pulse-ring");
-                }
+                fieldToFill.classList.add("autofill-pulse-ring");
                 chrome.runtime.sendMessage(
                     { action: "fillSingleField", fieldInfo: fieldInfo },
                     (response) => {

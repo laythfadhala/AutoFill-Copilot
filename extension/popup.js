@@ -112,10 +112,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Fill Current Form button
     elements.fillCurrentFormBtn?.addEventListener("click", async () => {
         try {
-            // Disable button to prevent multiple clicks
-            elements.fillCurrentFormBtn.disabled = true;
-            elements.fillCurrentFormBtn.textContent = "Processing...";
-
             // Show filling state
             showState("formFilling");
             elements.formFillingMessage.textContent =
@@ -129,17 +125,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
 
             if (!detectResponse.success) {
-                // Re-enable button and show error
-                elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
                 showError("Failed to detect forms: " + detectResponse.error);
                 return;
             }
 
             if (detectResponse.data.forms.length === 0) {
-                // Re-enable button and show error
-                elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
                 showError("No forms found on this page");
                 return;
             }
@@ -171,22 +161,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 // Wait a moment to show success, then return to logged in state
                 setTimeout(() => {
-                    elements.fillCurrentFormBtn.disabled = false;
-                    elements.fillCurrentFormBtn.textContent =
-                        "Fill Current Form";
                     showState("loggedIn");
                 }, 1000);
             } else {
-                // Re-enable button and show error
-                elements.fillCurrentFormBtn.disabled = false;
-                elements.fillCurrentFormBtn.textContent = "Fill Current Form";
                 showError("Failed to fill forms: " + sendResponse.error);
             }
         } catch (error) {
             console.error("Fill form error:", error);
-            // Re-enable button and show error
-            elements.fillCurrentFormBtn.disabled = false;
-            elements.fillCurrentFormBtn.textContent = "Fill Current Form";
             showError("An error occurred while processing forms");
         }
     }); // Clear Form button (placeholder for now)
