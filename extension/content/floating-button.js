@@ -12,7 +12,7 @@
     floatingContainer.style.display = "none"; // Hide initially to prevent flash
     floatingContainer.innerHTML = `
         <div class="autofill-floating-main-btn">
-            <span class="autofill-floating-icon" id="main-icon">+</span>
+            <span class="autofill-floating-icon" id="main-icon">✨</span>
         </div>
         <div class="autofill-floating-submenu">
             <button class="autofill-floating-sub-btn" id="fill-form-btn">
@@ -177,7 +177,7 @@
                 } catch (error) {
                     showNotification("Error: " + error.message, "error");
                 } finally {
-                    mainIcon.innerHTML = "+";
+                    mainIcon.innerHTML = "✨";
                 }
             });
 
