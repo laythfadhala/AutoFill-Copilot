@@ -47,7 +47,8 @@
         "notifications"
     ],
     "host_permissions": [
-        "https://*/*"
+        "https://*/*",
+        "http://localhost/*"
     ],
     "web_accessible_resources": [
         {

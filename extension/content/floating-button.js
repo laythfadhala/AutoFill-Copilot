@@ -2,6 +2,8 @@
 (function () {
     console.log("AutoFill Copilot: Floating button script loaded");
 
+    let hideTimeout;
+
     // Create the floating button container
     const floatingContainer = document.createElement("div");
     floatingContainer.id = "autofill-floating-container";
@@ -40,6 +42,7 @@
 
     // Hover to show submenu
     mainBtn.addEventListener("mouseenter", () => {
+        clearTimeout(hideTimeout);
         submenu.classList.add("show");
     });
 
@@ -48,8 +51,16 @@
         submenu.classList.toggle("show");
     });
 
+    // Keep submenu shown when hovering over it
+    submenu.addEventListener("mouseenter", () => {
+        clearTimeout(hideTimeout);
+    });
+
+    // Hide submenu after leaving the container
     floatingContainer.addEventListener("mouseleave", () => {
-        submenu.classList.remove("show");
+        hideTimeout = setTimeout(() => {
+            submenu.classList.remove("show");
+        }, 500); // Delay hide by 300ms
     });
 
     // Fill form button
