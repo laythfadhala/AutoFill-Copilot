@@ -1,17 +1,6 @@
 document.addEventListener("DOMContentLoaded", async () => {
-    // Show floating button on active tab and remember globally
-    try {
-        await chrome.storage.local.set({ floatingButtonVisible: true });
-        const [tab] = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-        });
-        if (tab) {
-            chrome.tabs.sendMessage(tab.id, { action: "showFloatingButton" });
-        }
-    } catch (error) {
-        console.error("Failed to show floating button:", error);
-    }
+    // Initialize floating button
+    await initializeFloatingButton();
 
     const states = {
         loading: document.getElementById("loading-state"),
