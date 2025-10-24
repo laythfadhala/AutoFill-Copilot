@@ -23,7 +23,16 @@
                 "https://*/*"
             ],
             "js": [
-                "content/sync-auth.js",
+                "content/sync-auth.js"
+            ],
+            "run_at": "document_start"
+        },
+        {
+            "matches": [
+                "http://localhost/*",
+                "https://*/*"
+            ],
+            "js": [
                 "content/form-detection.js",
                 "content/field-filling.js",
                 "content/clear-forms.js",
@@ -34,7 +43,7 @@
             "css": [
                 "content/styles.css"
             ],
-            "run_at": "document_start"
+            "run_at": "document_idle"
         }
     ],
     "permissions": [

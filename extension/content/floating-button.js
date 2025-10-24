@@ -137,6 +137,20 @@
                     const response = await chrome.runtime.sendMessage({
                         action: "detectForms",
                     });
+                    if (!response.success) {
+                        showNotification(
+                            "Failed to detect forms: " + response.error,
+                            "error"
+                        );
+                        return;
+                    }
+                    if (response.data.forms.length === 0) {
+                        showNotification(
+                            "No forms found on this page",
+                            "error"
+                        );
+                        return;
+                    }
                     if (response.success) {
                         // Proceed to fill
                         const fillResponse = await chrome.runtime.sendMessage({
