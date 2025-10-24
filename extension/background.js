@@ -28,6 +28,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case "fillSingleField":
             handleFillSingleField(request.fieldInfo, sendResponse, sender);
             break;
+        case "openPopup":
+            handleOpenPopup(sendResponse);
+            break;
     }
 
     return true;
@@ -300,6 +303,17 @@ async function handleClearForms(formData, sendResponse) {
         }
     } catch (error) {
         console.error("Clear forms error:", error);
+        sendResponse({ success: false, error: error.message });
+    }
+}
+
+// Handle opening the popup
+async function handleOpenPopup(sendResponse) {
+    try {
+        await chrome.action.openPopup();
+        sendResponse({ success: true });
+    } catch (error) {
+        console.error("Open popup error:", error);
         sendResponse({ success: false, error: error.message });
     }
 }

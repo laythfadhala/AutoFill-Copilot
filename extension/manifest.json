@@ -28,12 +28,13 @@
                 "content/field-filling.js",
                 "content/clear-forms.js",
                 "content/animation-utils.js",
-                "content/form-filling.js"
+                "content/form-filling.js",
+                "content/floating-button.js"
             ],
             "css": [
                 "content/styles.css"
             ],
-            "run_at": "document_start"
+            "run_at": "document_idle"
         }
     ],
     "permissions": [
