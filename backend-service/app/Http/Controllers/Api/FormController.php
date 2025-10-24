@@ -36,7 +36,8 @@ class FormController extends Controller
                 'forms.*.fields.*.options.*.value' => 'nullable|string|max:512',
                 'forms.*.fields.*.options.*.text' => 'nullable|string|max:512',
                 'forms.*.fields.*.options.*.selected' => 'nullable|boolean',
-                'timestamp' => 'required|date'
+                'timestamp' => 'required|date',
+                'profile_id' => 'nullable|integer|exists:user_profiles,id'
             ]);
 
             if ($validator->fails()) {
@@ -55,14 +56,23 @@ class FormController extends Controller
                 'url' => $formData['url'],
                 'title' => $formData['title'],
                 'forms_count' => count($formData['forms']),
-                'timestamp' => $formData['timestamp']
+                'timestamp' => $formData['timestamp'],
+                'profile_id' => $formData['profile_id'] ?? null
             ]);
 
-            // Get user's default active profile data
-            $userProfile = UserProfile::where('user_id', auth()->id())
-                ->where('is_active', true)
-                ->where('is_default', true)
-                ->first();
+            // Get user profile data - use specified profile or default active profile
+            $userProfile = null;
+            if (isset($formData['profile_id'])) {
+                $userProfile = UserProfile::where('user_id', auth()->id())
+                    ->where('id', $formData['profile_id'])
+                    ->where('is_active', true)
+                    ->first();
+            } else {
+                $userProfile = UserProfile::where('user_id', auth()->id())
+                    ->where('is_active', true)
+                    ->where('is_default', true)
+                    ->first();
+            }
 
             $profileData = null;
             if ($userProfile && $userProfile->data) {
@@ -70,10 +80,11 @@ class FormController extends Controller
                 Log::info('Using user profile data for form filling', [
                     'profile_id' => $userProfile->id,
                     'profile_name' => $userProfile->name,
-                    'data_fields' => count($profileData)
+                    'data_fields' => count($profileData),
+                    'is_default' => $userProfile->is_default
                 ]);
             } else {
-                Log::info('No active default profile found, using AI generation only');
+                Log::info('No active profile found, using AI generation only');
             }
 
             // Use AI service to fill the forms with user profile data
@@ -105,6 +116,8 @@ class FormController extends Controller
                     }),
                     'filled_data' => $filledData,
                     'profile_used' => $profileData ? true : false,
+                    'profile_id' => $userProfile ? $userProfile->id : null,
+                    'profile_name' => $userProfile ? $userProfile->name : null,
                     'processed_at' => now()->toISOString()
                 ]
             ];

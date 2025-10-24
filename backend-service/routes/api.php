@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\FieldController;
 use App\Http\Controllers\Api\FormController;
+use App\Http\Controllers\Api\ProfileController;
 // Form mapping feature removed
 
 /*
@@ -34,6 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::prefix('fields')->group(function () {
         Route::post('/fill', [FieldController::class, 'fill']);
+    });
+
+    Route::prefix('profiles')->group(function () {
+        Route::get('/', [ProfileController::class, 'index']);
     });
 });
 

@@ -20,7 +20,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             handleDetectForms(request, sendResponse);
             break;
         case "sendFormData":
-            handleSendFormData(request.formData, sendResponse);
+            handleSendFormData(
+                request.formData,
+                request.profileId,
+                sendResponse
+            );
             break;
         case "clearForms":
             handleClearForms(request.formData, sendResponse);
@@ -30,6 +34,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             break;
         case "openPopup":
             handleOpenPopup(sendResponse);
+            break;
+        case "getProfiles":
+            handleGetProfiles(sendResponse);
             break;
     }
 
@@ -126,7 +133,7 @@ async function handleDetectForms(request, sendResponse) {
     }
 }
 
-async function handleSendFormData(formData, sendResponse) {
+async function handleSendFormData(formData, profileId, sendResponse) {
     try {
         // Get auth token
         const data = await chrome.storage.local.get(["authToken"]);
@@ -134,6 +141,12 @@ async function handleSendFormData(formData, sendResponse) {
         if (!data.authToken) {
             sendResponse({ success: false, error: "Not authenticated" });
             return;
+        }
+
+        // Prepare request body
+        const requestBody = { ...formData };
+        if (profileId) {
+            requestBody.profile_id = profileId;
         }
 
         // Send form data to backend for filling
@@ -144,7 +157,7 @@ async function handleSendFormData(formData, sendResponse) {
                 "Content-Type": "application/json",
                 Accept: "application/json",
             },
-            body: JSON.stringify(formData),
+            body: JSON.stringify(requestBody),
         });
 
         if (response.ok) {
@@ -314,6 +327,36 @@ async function handleOpenPopup(sendResponse) {
         sendResponse({ success: true });
     } catch (error) {
         console.error("Open popup error:", error);
+        sendResponse({ success: false, error: error.message });
+    }
+}
+
+async function handleGetProfiles(sendResponse) {
+    try {
+        const data = await chrome.storage.local.get(["authToken"]);
+        if (!data.authToken) {
+            sendResponse({ success: false, error: "Not authenticated" });
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/profiles`, {
+            headers: {
+                Authorization: `Bearer ${data.authToken}`,
+                Accept: "application/json",
+            },
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            sendResponse({ success: true, profiles: result.data || result });
+        } else {
+            sendResponse({
+                success: false,
+                error: `API error: ${response.status}`,
+            });
+        }
+    } catch (error) {
+        console.error("Get profiles error:", error);
         sendResponse({ success: false, error: error.message });
     }
 }

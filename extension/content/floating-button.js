@@ -152,10 +152,17 @@
                         return;
                     }
                     if (response.success) {
+                        // Load previously selected profile from storage
+                        const storageData = await chrome.storage.local.get([
+                            "selectedProfileId",
+                        ]);
+                        const savedProfileId = storageData.selectedProfileId;
+
                         // Proceed to fill
                         const fillResponse = await chrome.runtime.sendMessage({
                             action: "sendFormData",
                             formData: response.data,
+                            profileId: savedProfileId,
                         });
                         if (fillResponse.success) {
                             showNotification(

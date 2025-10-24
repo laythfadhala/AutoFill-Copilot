@@ -21,18 +21,64 @@ document.addEventListener("DOMContentLoaded", async () => {
         formFillingMessage: document.getElementById("form-filling-message"),
         formFillingPage: document.getElementById("form-filling-page"),
         formFillingFields: document.getElementById("form-filling-fields"),
+        profileSelect: document.getElementById("profile-select"),
     };
 
     function showState(stateName) {
         Object.values(states).forEach((el) => el.classList.add("hidden"));
         if (states[stateName]) {
             states[stateName].classList.remove("hidden");
+            if (stateName === "loggedIn") {
+                loadProfiles();
+            }
         }
     }
 
     function showError(message) {
         elements.errorMessage.textContent = message;
         showState("error");
+    }
+
+    async function loadProfiles() {
+        try {
+            // Assume endpoint is /profiles
+            const response = await chrome.runtime.sendMessage({
+                action: "getProfiles",
+            });
+            if (response.success) {
+                elements.profileSelect.innerHTML =
+                    '<option value="">Select a profile...</option>';
+                response.profiles.forEach((profile) => {
+                    const option = document.createElement("option");
+                    option.value = profile.id;
+                    option.textContent = `${profile.name} (${profile.type})`;
+                    elements.profileSelect.appendChild(option);
+                });
+
+                // Load previously selected profile from storage
+                const storageData = await chrome.storage.local.get([
+                    "selectedProfileId",
+                ]);
+                const savedProfileId = storageData.selectedProfileId;
+
+                // Select saved profile or first profile by default
+                if (
+                    savedProfileId &&
+                    response.profiles.some((p) => p.id == savedProfileId)
+                ) {
+                    elements.profileSelect.value = savedProfileId;
+                } else if (response.profiles.length > 0) {
+                    elements.profileSelect.value = response.profiles[0].id;
+                }
+            } else {
+                elements.profileSelect.innerHTML =
+                    '<option value="">Failed to load profiles</option>';
+            }
+        } catch (error) {
+            console.error("Failed to load profiles:", error);
+            elements.profileSelect.innerHTML =
+                '<option value="">Error loading profiles</option>';
+        }
     }
 
     // Initialize the first state
@@ -92,7 +138,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         const logoutResponse = await chrome.runtime.sendMessage({
             action: "logout",
         });
+        // Clear selected profile from storage on logout
+        await chrome.storage.local.remove(["selectedProfileId"]);
         showState("loggedOut");
+    });
+
+    // Profile selection change listener
+    elements.profileSelect.addEventListener("change", async () => {
+        const selectedProfileId = elements.profileSelect.value;
+        await chrome.storage.local.set({ selectedProfileId });
     });
 
     // Retry button
@@ -151,9 +205,11 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Send form data to backend for filling
             elements.formFillingMessage.textContent =
                 "Filling forms with your data...";
+            const selectedProfile = elements.profileSelect.value;
             const sendResponse = await chrome.runtime.sendMessage({
                 action: "sendFormData",
                 formData: detectResponse.data,
+                profileId: selectedProfile,
             });
 
             if (sendResponse.success) {
