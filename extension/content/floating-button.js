@@ -9,6 +9,7 @@
     // Create the floating button container
     const floatingContainer = document.createElement("div");
     floatingContainer.id = "autofill-floating-container";
+    floatingContainer.style.display = "none"; // Hide initially to prevent flash
     floatingContainer.innerHTML = `
         <div class="autofill-floating-main-btn">
             <span class="autofill-floating-icon" id="main-icon">+</span>
@@ -28,9 +29,18 @@
             </button>
         </div>
     `;
+
+    // Check if floating button should be visible
+    chrome.storage.local.get(["floatingButtonVisible"], (data) => {
+        if (data.floatingButtonVisible) {
+            floatingContainer.style.display = "block";
+        } else {
+            floatingContainer.style.display = "none";
+        }
+    });
+
     document.body.appendChild(floatingContainer);
     console.log("AutoFill Copilot: Floating button injected");
-
     // Get elements
     const mainBtn = floatingContainer.querySelector(
         ".autofill-floating-main-btn"
@@ -139,6 +149,7 @@
     // Hide button
     hideBtn.addEventListener("click", () => {
         floatingContainer.style.display = "none";
+        chrome.storage.local.set({ floatingButtonVisible: false });
     });
 
     // Notification function
@@ -157,4 +168,14 @@
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
+
+    // Listen for messages from popup/background
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === "showFloatingButton") {
+            floatingContainer.style.display = "block";
+            chrome.storage.local.set({ floatingButtonVisible: true });
+            sendResponse({ success: true });
+        }
+        return true;
+    });
 })();
