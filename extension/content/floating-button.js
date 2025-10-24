@@ -3,6 +3,8 @@
     console.log("AutoFill Copilot: Floating button script loaded");
 
     let hideTimeout;
+    let isDragging = false;
+    let dragOffsetY = 0;
 
     // Create the floating button container
     const floatingContainer = document.createElement("div");
@@ -40,14 +42,44 @@
     const openPopupBtn = floatingContainer.querySelector("#open-popup-btn");
     const hideBtn = floatingContainer.querySelector("#hide-btn");
 
+    // Drag functionality
+    mainBtn.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        dragOffsetY = e.clientY - floatingContainer.offsetTop;
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("mouseup", onMouseUp);
+        e.preventDefault(); // Prevent text selection
+    });
+
+    function onMouseMove(e) {
+        if (!isDragging) return;
+        let newY = e.clientY - dragOffsetY;
+        const maxY = window.innerHeight - floatingContainer.offsetHeight;
+        newY = Math.max(0, Math.min(newY, maxY));
+        floatingContainer.style.setProperty("top", newY + "px", "important");
+        floatingContainer.style.setProperty(
+            "transform",
+            "translateY(0)",
+            "important"
+        );
+    }
+
+    function onMouseUp() {
+        isDragging = false;
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+    }
+
     // Hover to show submenu
     mainBtn.addEventListener("mouseenter", () => {
+        if (isDragging) return;
         clearTimeout(hideTimeout);
         submenu.classList.add("show");
     });
 
     // Click to toggle submenu
     mainBtn.addEventListener("click", () => {
+        if (isDragging) return;
         submenu.classList.toggle("show");
     });
 
