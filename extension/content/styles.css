@@ -294,3 +294,23 @@
 .autofill-floating-sub-btn:active {
     transform: translateX(-1px) scale(0.98) !important;
 }
+
+/* Floating button spinner */
+.autofill-floating-spinner {
+    border: 2px solid rgba(255, 255, 255, 0.3) !important;
+    border-top: 2px solid white !important;
+    border-radius: 50% !important;
+    width: 16px !important;
+    height: 16px !important;
+    animation: autofill-spin 1s linear infinite !important;
+    display: inline-block !important;
+}
+
+@keyframes autofill-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

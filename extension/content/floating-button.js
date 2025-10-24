@@ -9,7 +9,7 @@
     floatingContainer.id = "autofill-floating-container";
     floatingContainer.innerHTML = `
         <div class="autofill-floating-main-btn">
-            <span class="autofill-floating-icon">+</span>
+            <span class="autofill-floating-icon" id="main-icon">+</span>
         </div>
         <div class="autofill-floating-submenu">
             <button class="autofill-floating-sub-btn" id="fill-form-btn">
@@ -65,6 +65,8 @@
 
     // Fill form button
     fillBtn.addEventListener("click", async () => {
+        const mainIcon = document.getElementById("main-icon");
+        mainIcon.innerHTML = '<div class="autofill-floating-spinner"></div>';
         try {
             // Send message to background to fill forms
             const response = await chrome.runtime.sendMessage({
@@ -92,6 +94,8 @@
             }
         } catch (error) {
             showNotification("Error: " + error.message, "error");
+        } finally {
+            mainIcon.innerHTML = "+";
         }
     });
 
