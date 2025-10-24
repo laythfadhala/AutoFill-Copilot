@@ -170,8 +170,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error("Fill form error:", error);
             showError("An error occurred while processing forms");
         }
-    }); // Clear Form button (placeholder for now)
-    elements.clearFormBtn?.addEventListener("click", async () => {
-        alert("Clear form functionality not implemented yet");
     });
+
+    // Initialize clear form functionality
+    if (typeof initializeClearFormButton === "function") {
+        initializeClearFormButton(states, elements, showState, showError);
+    }
 });

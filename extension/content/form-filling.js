@@ -223,48 +223,68 @@ function fillForms(filledData, forms) {
 
 // Listen for messages from popup/background
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === "fillForms") {
-        try {
-            const result = fillForms(request.filledData, request.forms);
-            sendResponse(result);
-        } catch (error) {
-            console.error("Form filling error:", error);
-            sendResponse({ success: false, error: error.message });
-        }
-    } else if (request.action === "checkCurrentField") {
-        sendResponse({ hasField: !!currentField });
-    } else if (request.action === "fillCurrentField") {
-        // Capture the field at the time of the request to avoid race conditions
-        const fieldToFill = currentField;
-        if (fieldToFill) {
-            const fieldInfo = createFieldInfo(fieldToFill);
-            if (fieldInfo) {
-                fieldToFill.classList.add("autofill-pulse-ring");
-                chrome.runtime.sendMessage(
-                    { action: "fillSingleField", fieldInfo: fieldInfo },
-                    (response) => {
-                        if (response && response.success) {
-                            const result = window.fillSingleField(
-                                fieldToFill,
-                                response.filledValue
-                            );
-                            sendResponse(result);
-                        } else {
-                            sendResponse({
-                                success: false,
-                                error: response
-                                    ? response.error
-                                    : "Unknown error",
-                            });
-                        }
-                    }
-                );
-            } else {
-                sendResponse({ success: false, error: "Invalid field" });
+    switch (request.action) {
+        case "fillForms":
+            try {
+                const result = fillForms(request.filledData, request.forms);
+                sendResponse(result);
+            } catch (error) {
+                console.error("Form filling error:", error);
+                sendResponse({ success: false, error: error.message });
             }
-        } else {
-            sendResponse({ success: false, error: "No field selected" });
-        }
+            break;
+
+        case "clearForms":
+            try {
+                const result = clearForms(request.forms);
+                sendResponse(result);
+            } catch (error) {
+                console.error("Form clearing error:", error);
+                sendResponse({ success: false, error: error.message });
+            }
+            break;
+
+        case "checkCurrentField":
+            sendResponse({ hasField: !!currentField });
+            break;
+
+        case "fillCurrentField":
+            // Capture the field at the time of the request to avoid race conditions
+            const fieldToFill = currentField;
+            if (fieldToFill) {
+                const fieldInfo = createFieldInfo(fieldToFill);
+                if (fieldInfo) {
+                    fieldToFill.classList.add("autofill-pulse-ring");
+                    chrome.runtime.sendMessage(
+                        { action: "fillSingleField", fieldInfo: fieldInfo },
+                        (response) => {
+                            if (response && response.success) {
+                                const result = window.fillSingleField(
+                                    fieldToFill,
+                                    response.filledValue
+                                );
+                                sendResponse(result);
+                            } else {
+                                sendResponse({
+                                    success: false,
+                                    error: response
+                                        ? response.error
+                                        : "Unknown error",
+                                });
+                            }
+                        }
+                    );
+                } else {
+                    sendResponse({ success: false, error: "Invalid field" });
+                }
+            } else {
+                sendResponse({ success: false, error: "No field selected" });
+            }
+            break;
+
+        default:
+            sendResponse({ success: false, error: "Unknown action" });
+            break;
     }
     return true;
 });

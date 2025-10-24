@@ -22,6 +22,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case "sendFormData":
             handleSendFormData(request.formData, sendResponse);
             break;
+        case "clearForms":
+            handleClearForms(request.formData, sendResponse);
+            break;
         case "fillSingleField":
             handleFillSingleField(request.fieldInfo, sendResponse, sender);
             break;
@@ -258,6 +261,45 @@ async function handleFillSingleField(fieldInfo, sendResponse, sender) {
         }
     } catch (error) {
         console.error("Fill single field error:", error);
+        sendResponse({ success: false, error: error.message });
+    }
+}
+
+async function handleClearForms(formData, sendResponse) {
+    try {
+        // Get the active tab to clear the forms
+        const [tab] = await chrome.tabs.query({
+            active: true,
+            currentWindow: true,
+        });
+
+        if (tab) {
+            // Send the clear command to the content script
+            const clearResponse = await chrome.tabs.sendMessage(tab.id, {
+                action: "clearForms",
+                forms: formData.forms,
+            });
+
+            if (clearResponse.success) {
+                sendResponse({
+                    success: true,
+                    message: "Forms cleared successfully",
+                });
+            } else {
+                sendResponse({
+                    success: false,
+                    error:
+                        "Failed to clear forms on page: " + clearResponse.error,
+                });
+            }
+        } else {
+            sendResponse({
+                success: false,
+                error: "No active tab found to clear forms",
+            });
+        }
+    } catch (error) {
+        console.error("Clear forms error:", error);
         sendResponse({ success: false, error: error.message });
     }
 }
