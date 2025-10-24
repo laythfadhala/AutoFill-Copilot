@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "AutoFill Copilot",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "description": "Intelligent form auto-fill extension powered by AI. Securely detects and fills forms on any website.",
     "action": {
         "default_popup": "popup.html",
@@ -26,6 +26,7 @@
                 "content/sync-auth.js",
                 "content/form-detection.js",
                 "content/field-filling.js",
+                "content/animation-utils.js",
                 "content/form-filling.js"
             ],
             "css": [

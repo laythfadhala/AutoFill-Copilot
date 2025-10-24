@@ -1,6 +1,6 @@
 // Form Filling Content Script
 
-let currentField = null;
+var currentField = null;
 
 // Listen for right-click on form fields
 document.addEventListener("contextmenu", function (e) {
@@ -176,6 +176,13 @@ function fillForms(filledData, forms) {
                         console.log(
                             `Filled field ${field.name} with value: ${value}`
                         );
+                        // Add pulse ring animation to the input before filling
+                        input.classList.add("autofill-pulse-ring");
+
+                        // Remove the animation class after the animation duration
+                        setTimeout(() => {
+                            input.classList.remove("autofill-pulse-ring");
+                        }, 1000);
                     } else {
                         console.warn(
                             `No value provided for field ${field.name}, skipping`
@@ -231,6 +238,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (fieldToFill) {
             const fieldInfo = createFieldInfo(fieldToFill);
             if (fieldInfo) {
+                injectPulseStyle();
+                // Add pulse ring animation to the field before filling
+                fieldToFill.classList.add("autofill-pulse-ring");
                 chrome.runtime.sendMessage(
                     { action: "fillSingleField", fieldInfo: fieldInfo },
                     (response) => {

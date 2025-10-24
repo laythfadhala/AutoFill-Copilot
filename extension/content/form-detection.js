@@ -1,5 +1,5 @@
 // Fields to exclude from detection
-const EXCLUDED_FIELD_TYPES = [
+var EXCLUDED_FIELD_TYPES = [
     "hidden",
     "submit",
     "reset",
@@ -8,7 +8,7 @@ const EXCLUDED_FIELD_TYPES = [
     "search",
     "password",
 ];
-const EXCLUDED_FIELD_NAMES = [
+var EXCLUDED_FIELD_NAMES = [
     "csrf_token",
     "csrfmiddlewaretoken",
     "_token",

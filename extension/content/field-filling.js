@@ -70,6 +70,7 @@ function fillSingleField(input, value) {
                 input.dispatchEvent(new Event("input", { bubbles: true }));
             });
         }
+        input.classList.remove("autofill-pulse-ring");
         return { success: true };
     } catch (error) {
         console.error("Error filling single field:", error);
