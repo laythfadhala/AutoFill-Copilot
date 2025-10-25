@@ -26,6 +26,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         formFillingFields: document.getElementById("form-filling-fields"),
         profileSelect: document.getElementById("profile-select"),
         dashboardBtn: document.getElementById("dashboard-btn-logged-in"),
+        formsDetected: document.getElementById("forms-detected"),
     };
 
     function showState(stateName) {
@@ -34,6 +35,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             states[stateName].classList.remove("hidden");
             if (stateName === "loggedIn") {
                 loadProfiles();
+                updateFormsDetected();
             }
         }
     }
@@ -41,6 +43,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     function showError(message) {
         elements.errorMessage.textContent = message;
         showState("error");
+    }
+
+    async function updateFormsDetected() {
+        try {
+            const detectResponse = await chrome.runtime.sendMessage({
+                action: "detectForms",
+            });
+            if (detectResponse.success) {
+                elements.formsDetected.textContent =
+                    detectResponse.data.forms.length;
+            } else {
+                elements.formsDetected.textContent = "0";
+            }
+        } catch (error) {
+            console.error("Failed to detect forms:", error);
+            elements.formsDetected.textContent = "0";
+        }
     }
 
     async function loadProfiles() {

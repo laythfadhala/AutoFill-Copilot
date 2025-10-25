@@ -39,3 +39,10 @@ function getModelAttributes() {
         "data-bind",
     ];
 }
+
+// Detect if the page is using React for later use if needed
+// function isReactApp() {
+//     return !!document.querySelector(
+//         "[data-reactroot], [data-react-helmet], [__reactInternalInstanceKey]"
+//     );
+// }
