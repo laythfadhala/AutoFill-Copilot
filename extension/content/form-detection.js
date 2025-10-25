@@ -17,6 +17,7 @@ var EXCLUDED_FIELD_NAMES = [
     "__requestverificationtoken",
     "verification_token",
     "nonce",
+    "g-recaptcha-response",
 ];
 
 // Helper function to create field info from an input element
