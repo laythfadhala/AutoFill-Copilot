@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         profileSelect: document.getElementById("profile-select"),
         dashboardBtn: document.getElementById("dashboard-btn-logged-in"),
         formsDetected: document.getElementById("forms-detected"),
+        formSelectPopup: document.getElementById("form-select-popup"),
     };
 
     function showState(stateName) {
@@ -35,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             states[stateName].classList.remove("hidden");
             if (stateName === "loggedIn") {
                 loadProfiles();
-                updateFormsDetected();
+                updateDetectedForms();
             }
         }
     }
@@ -45,19 +46,49 @@ document.addEventListener("DOMContentLoaded", async () => {
         showState("error");
     }
 
-    async function updateFormsDetected() {
+    function getFormFriendlyName(form) {
+        if (!form.action) return "Form";
+        try {
+            const pathname = new URL(form.action || window.location.href).pathname.toLowerCase();
+            const cleanPath = pathname.replace(/^\//, "").replace(/-/g, " ").replace(/_/g, " ");
+            return cleanPath.charAt(0).toUpperCase() + cleanPath.slice(1) + " Form";
+        } catch (error) {
+            return "Form";
+        }
+    }
+
+    async function updateDetectedForms() {
         try {
             const detectResponse = await chrome.runtime.sendMessage({
                 action: "detectForms",
             });
             if (detectResponse.success) {
-                elements.formsDetected.textContent = detectResponse.data.forms.length;
+                const forms = detectResponse.data.forms;
+                elements.formsDetected.textContent = forms.length;
+
+                // Populate form selector
+                elements.formSelectPopup.innerHTML = '<option value="">Select a form...</option>';
+                forms.forEach((form, index) => {
+                    const option = document.createElement("option");
+                    option.value = form.id;
+                    const friendlyName = getFormFriendlyName(form);
+                    const fieldsCount = form.fields.length;
+                    option.textContent = `${friendlyName}: ${fieldsCount} fields`;
+                    elements.formSelectPopup.appendChild(option);
+                });
+
+                // Select first form by default if available
+                if (forms.length > 0) {
+                    elements.formSelectPopup.value = forms[0].id;
+                }
             } else {
                 elements.formsDetected.textContent = "0";
+                elements.formSelectPopup.innerHTML = '<option value="">No forms detected</option>';
             }
         } catch (error) {
             console.error("Failed to detect forms:", error);
             elements.formsDetected.textContent = "0";
+            elements.formSelectPopup.innerHTML = '<option value="">Error detecting forms</option>';
         }
     }
 
@@ -189,6 +220,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Fill Current Form button
     elements.fillCurrentFormBtn?.addEventListener("click", async () => {
         try {
+            const selectedFormId = elements.formSelectPopup.value;
+            if (!selectedFormId) {
+                showError("Please select a form to fill");
+                return;
+            }
+
             // Show filling state
             showState("formFilling");
             elements.formFillingMessage.textContent = "Detecting form fields...";
@@ -210,21 +247,34 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
+            // Find the selected form
+            const selectedForm = detectResponse.data.forms.find(
+                (form) => form.id == selectedFormId
+            );
+            if (!selectedForm) {
+                showError("Selected form not found");
+                return;
+            }
+
+            // Create form data with only the selected form
+            const selectedFormData = {
+                url: detectResponse.data.url,
+                title: detectResponse.data.title,
+                forms: [selectedForm],
+                timestamp: detectResponse.data.timestamp,
+            };
+
             // Update progress
             elements.formFillingMessage.textContent = "Analyzing form structure...";
             elements.formFillingPage.textContent = detectResponse.data.title || "Current Page";
-            const totalFields = detectResponse.data.forms.reduce(
-                (sum, form) => sum + form.fields.length,
-                0
-            );
-            elements.formFillingFields.textContent = totalFields;
+            elements.formFillingFields.textContent = selectedForm.fields.length;
 
             // Send form data to backend for filling
-            elements.formFillingMessage.textContent = "Filling forms with your data...";
+            elements.formFillingMessage.textContent = "Filling form with your data...";
             const selectedProfile = elements.profileSelect.value;
             const sendResponse = await chrome.runtime.sendMessage({
                 action: "sendFormData",
-                formData: detectResponse.data,
+                formData: selectedFormData,
                 profileId: selectedProfile,
             });
 

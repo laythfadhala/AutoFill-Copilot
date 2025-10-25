@@ -84,7 +84,7 @@ class TogetherAIService
                 ]
             ],
             'max_tokens' => 5000,
-            'temperature' => 0.1
+            'temperature' => 0.2
         ]);
 
         if ($response->successful()) {
@@ -166,7 +166,7 @@ class TogetherAIService
                 ]
             ],
             'max_tokens' => 2000,
-            'temperature' => 0.1
+            'temperature' => 0.2
         ]);
 
         if ($response->successful()) {
