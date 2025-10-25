@@ -50,36 +50,21 @@ function fillForms(filledData, forms) {
 
                     let input;
                     const safeName = CSS.escape(field.name || "");
-                    if (isGlobalFields) {
-                        // For global fields, search across the entire document
-                        input =
-                            document.querySelector(`[name="${safeName}"]`) ||
-                            document.querySelector(`#${safeName}`) ||
-                            document.querySelector(`[id="${safeName}"]`) ||
-                            document.querySelector(
-                                `[wire\\:model="${safeName}"]`
-                            ) ||
-                            document.querySelector(
-                                `[wire\\:model\\.defer="${safeName}"]`
-                            ) ||
-                            document.querySelector(
-                                `[placeholder*="${safeName}"]`
-                            );
-                    } else {
-                        // For regular forms, search within the form element
-                        input =
-                            pageForm.querySelector(`[name="${safeName}"]`) ||
-                            pageForm.querySelector(`#${safeName}`) ||
-                            pageForm.querySelector(`[id="${safeName}"]`) ||
-                            pageForm.querySelector(
-                                `[wire\\:model="${safeName}"]`
-                            ) ||
-                            pageForm.querySelector(
-                                `[wire\\:model\\.defer="${safeName}"]`
-                            ) ||
-                            pageForm.querySelector(
-                                `[placeholder*="${safeName}"]`
-                            );
+                    const baseSelectors = [
+                        `[name="${safeName}"]`,
+                        `#${safeName}`,
+                        `[id="${safeName}"]`,
+                        `[placeholder*="${safeName}"]`,
+                    ];
+                    const modelSelectors = getModelAttributes().map(
+                        (attr) => `[${CSS.escape(attr)}="${safeName}"]`
+                    );
+                    const allSelectors = baseSelectors.concat(modelSelectors);
+
+                    const searchElement = isGlobalFields ? document : pageForm;
+                    for (const selector of allSelectors) {
+                        input = searchElement.querySelector(selector);
+                        if (input) break;
                     }
 
                     if (!input) {

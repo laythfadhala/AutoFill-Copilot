@@ -84,7 +84,7 @@ class TogetherAIService
                 ]
             ],
             'max_tokens' => 5000,
-            'temperature' => 0.2
+            'temperature' => 0.1
         ]);
 
         if ($response->successful()) {
@@ -147,6 +147,7 @@ class TogetherAIService
 
         $prompt .= "\nINSTRUCTIONS:\n";
         $prompt .= "- Do not skip or remove any field\n";
+        $prompt .= "- Never return a nested JSON, always flat key:value pairs\n";
         $prompt .= "- Use the user's actual data when available and relevant\n";
         $prompt .= "- For select dropdowns: choose the most appropriate option from available choices\n";
         $prompt .= "- For text areas: generate 1-2 sentences of relevant content\n";
@@ -165,7 +166,7 @@ class TogetherAIService
                 ]
             ],
             'max_tokens' => 2000,
-            'temperature' => 0.2
+            'temperature' => 0.1
         ]);
 
         if ($response->successful()) {

@@ -33,6 +33,7 @@
                 "https://*/*"
             ],
             "js": [
+                "content/utils.js",
                 "content/form-detection.js",
                 "content/field-filling.js",
                 "content/clear-forms.js",

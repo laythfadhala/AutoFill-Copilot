@@ -38,12 +38,9 @@ function createFieldInfo(input) {
         return null;
     }
 
-    const wireModel =
-        input.getAttribute("wire:model") ||
-        input.getAttribute("wire:model.defer");
-
+    const frameWorksModels = getFrameworkModels(input);
     const fieldInfo = {
-        name: input.name || input.id || wireModel || "",
+        name: frameWorksModels || input.id || input.name || "",
         type: input.type || "text",
         placeholder: input.placeholder || "",
         value: input.value || "",
