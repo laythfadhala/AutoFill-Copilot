@@ -2,7 +2,6 @@
 (function () {
     console.log("AutoFill Copilot: Floating button script loaded");
 
-    let hideTimeout;
     let isDragging = false;
     let dragOffsetY = 0;
 
