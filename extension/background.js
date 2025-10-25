@@ -28,8 +28,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         case "fillSingleField":
             handleFillSingleField(request.fieldInfo, sendResponse, sender);
             break;
-        case "openPopup":
-            handleOpenPopup(sendResponse);
+        case "openSidePanel":
+            handleOpenSidePanel(sendResponse, sender);
             break;
         case "getProfiles":
             handleGetProfiles(sendResponse);
@@ -313,13 +313,12 @@ async function handleClearForms(formData, sendResponse) {
     }
 }
 
-// Handle opening the popup
-async function handleOpenPopup(sendResponse) {
+async function handleOpenSidePanel(sendResponse, sender) {
     try {
-        await chrome.action.openPopup();
+        await chrome.sidePanel.open({ tabId: sender.tab.id });
         sendResponse({ success: true });
     } catch (error) {
-        console.error("Open popup error:", error);
+        console.error("Open side panel error:", error);
         sendResponse({ success: false, error: error.message });
     }
 }

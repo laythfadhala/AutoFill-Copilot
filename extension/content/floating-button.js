@@ -12,21 +12,15 @@
     floatingContainer.style.display = "none"; // Hide initially to prevent flash
     floatingContainer.innerHTML = `
         <div class="autofill-floating-main-btn">
-            <span class="autofill-floating-icon" id="main-icon">✨</span>
-        </div>
-        <div class="autofill-floating-submenu">
-            <button class="autofill-floating-sub-btn" id="fill-form-btn">
-                <span class="autofill-floating-icon">📝</span>
-                Fill Form
-            </button>
-            <button class="autofill-floating-sub-btn" id="open-popup-btn">
-                <span class="autofill-floating-icon">⚙️</span>
-                Settings
-            </button>
-            <button class="autofill-floating-sub-btn" id="hide-btn">
-                <span class="autofill-floating-icon">❌</span>
-                Hide
-            </button>
+            <div class="autofill-floating-main-area">
+                <span class="autofill-floating-icon" id="main-icon">✨</span>
+            </div>
+            <div class="autofill-floating-drag-handle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <button class="autofill-floating-hide-btn" id="hide-btn">X</button>
         </div>
     `;
 
@@ -45,13 +39,12 @@
 
         // Get elements
         const mainBtn = floatingContainer.querySelector(".autofill-floating-main-btn");
-        const submenu = floatingContainer.querySelector(".autofill-floating-submenu");
-        const fillBtn = floatingContainer.querySelector("#fill-form-btn");
-        const openPopupBtn = floatingContainer.querySelector("#open-popup-btn");
+        const mainArea = floatingContainer.querySelector(".autofill-floating-main-area");
+        const dragHandle = floatingContainer.querySelector(".autofill-floating-drag-handle");
         const hideBtn = floatingContainer.querySelector("#hide-btn");
 
         // Drag functionality
-        mainBtn.addEventListener("mousedown", (e) => {
+        dragHandle.addEventListener("mousedown", (e) => {
             isDragging = true;
             dragOffsetY = e.clientY - floatingContainer.offsetTop;
             document.addEventListener("mousemove", onMouseMove);
@@ -78,77 +71,21 @@
             document.removeEventListener("mouseup", onMouseUp);
         }
 
-        // Hover to show submenu
-        mainBtn.addEventListener("mouseenter", () => {
+        // Hover to show hide button
+        mainArea.addEventListener("mouseenter", () => {
             if (isDragging) return;
-            clearTimeout(hideTimeout);
-            submenu.classList.add("show");
+            hideBtn.classList.add("visible");
         });
 
-        // Click to toggle submenu
-        mainBtn.addEventListener("click", () => {
+        // Click to open side panel
+        mainArea.addEventListener("click", () => {
             if (isDragging) return;
-            submenu.classList.toggle("show");
+            chrome.runtime.sendMessage({ action: "openSidePanel" });
         });
 
-        // Keep submenu shown when hovering over it
-        submenu.addEventListener("mouseenter", () => {
-            clearTimeout(hideTimeout);
-        });
-
-        // Hide submenu after leaving the container
-        floatingContainer.addEventListener("mouseleave", () => {
-            hideTimeout = setTimeout(() => {
-                submenu.classList.remove("show");
-            }, 500); // Delay hide by 500ms
-        });
-
-        // Fill form button
-        fillBtn.addEventListener("click", async () => {
-            const mainIcon = document.getElementById("main-icon");
-            mainIcon.innerHTML = '<div class="autofill-floating-spinner"></div>';
-            try {
-                // Send message to background to fill forms
-                const response = await chrome.runtime.sendMessage({
-                    action: "detectForms",
-                });
-                if (!response.success) {
-                    showNotification("Failed to detect forms: " + response.error, "error");
-                    return;
-                }
-                if (response.data.forms.length === 0) {
-                    showNotification("No forms found on this page", "error");
-                    return;
-                }
-                if (response.success) {
-                    // Load previously selected profile from storage
-                    const storageData = await chrome.storage.local.get(["selectedProfileId"]);
-                    const savedProfileId = storageData.selectedProfileId;
-
-                    // Proceed to fill
-                    const fillResponse = await chrome.runtime.sendMessage({
-                        action: "sendFormData",
-                        formData: response.data,
-                        profileId: savedProfileId,
-                    });
-                    if (fillResponse.success) {
-                        showNotification("Form filled successfully!", "success");
-                    } else {
-                        showNotification("Failed to fill form: " + fillResponse.error, "error");
-                    }
-                } else {
-                    showNotification("Failed to detect forms: " + response.error, "error");
-                }
-            } catch (error) {
-                showNotification("Error: " + error.message, "error");
-            } finally {
-                mainIcon.innerHTML = "✨";
-            }
-        });
-
-        // Open popup button
-        openPopupBtn.addEventListener("click", () => {
-            chrome.runtime.sendMessage({ action: "openPopup" });
+        // Hide hide button after leaving the main button
+        mainBtn.addEventListener("mouseleave", () => {
+            hideBtn.classList.remove("visible");
         });
 
         // Hide button
@@ -156,23 +93,6 @@
             floatingContainer.style.display = "none";
             chrome.storage.local.set({ floatingButtonVisible: false });
         });
-
-        // Notification function
-        function showNotification(message, type = "success") {
-            const notification = document.createElement("div");
-            notification.className = `autofill-notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => {
-                notification.classList.add("show");
-            }, 100);
-
-            setTimeout(() => {
-                notification.classList.add("hide");
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
 
         // Listen for messages from popup/background
         chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
