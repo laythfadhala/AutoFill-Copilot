@@ -39,9 +39,7 @@ function fillForms(filledData, forms) {
                     if (!field.name) {
                         console.warn(
                             `Field with no name skipped in ${
-                                isGlobalFields
-                                    ? "global fields"
-                                    : `form ${formIndex}`
+                                isGlobalFields ? "global fields" : `form ${formIndex}`
                             }`
                         );
                         fieldsSkipped++;
@@ -70,9 +68,7 @@ function fillForms(filledData, forms) {
                     if (!input) {
                         console.warn(
                             `Field ${field.name} not found in ${
-                                isGlobalFields
-                                    ? "global fields"
-                                    : `form ${formIndex}`
+                                isGlobalFields ? "global fields" : `form ${formIndex}`
                             }`
                         );
                         fieldsSkipped++;
@@ -81,9 +77,7 @@ function fillForms(filledData, forms) {
 
                     // Skip disabled fields
                     if (input.disabled) {
-                        console.warn(
-                            `Field ${field.name} is disabled, skipping`
-                        );
+                        console.warn(`Field ${field.name} is disabled, skipping`);
                         fieldsSkipped++;
                         return;
                     }
@@ -118,12 +112,9 @@ function fillForms(filledData, forms) {
                                     radio.checked = false;
                                 });
                                 // Check the radio whose value matches (case-insensitive)
-                                const matchingRadio = Array.from(
-                                    radioGroup
-                                ).find(
+                                const matchingRadio = Array.from(radioGroup).find(
                                     (radio) =>
-                                        radio.value.toLowerCase() ==
-                                        value.toString().toLowerCase()
+                                        radio.value.toLowerCase() == value.toString().toLowerCase()
                                 );
                                 if (matchingRadio) {
                                     matchingRadio.checked = true;
@@ -140,25 +131,19 @@ function fillForms(filledData, forms) {
                             const matchingOption = options.find(
                                 (option) =>
                                     option.value === String(value) ||
-                                    (option.text &&
-                                        option.text.toLowerCase() ===
-                                            stringValue)
+                                    (option.text && option.text.toLowerCase() === stringValue)
                             );
 
                             if (matchingOption) {
                                 input.value = matchingOption.value;
                                 // Trigger change event
-                                input.dispatchEvent(
-                                    new Event("change", { bubbles: true })
-                                );
+                                input.dispatchEvent(new Event("change", { bubbles: true }));
                             }
                         } else {
                             // For text inputs, textareas, etc.
                             input.value = String(value);
                             // Trigger input event
-                            input.dispatchEvent(
-                                new Event("input", { bubbles: true })
-                            );
+                            input.dispatchEvent(new Event("input", { bubbles: true }));
                         }
                         fieldsFilled++;
 
@@ -170,16 +155,11 @@ function fillForms(filledData, forms) {
                             input.classList.remove("autofill-pulse-ring");
                         }, 1000);
                     } else {
-                        console.warn(
-                            `No value provided for field ${field.name}, skipping`
-                        );
+                        console.warn(`No value provided for field ${field.name}, skipping`);
                         fieldsSkipped++;
                     }
                 } catch (fieldError) {
-                    console.error(
-                        `Error filling field ${field.name}:`,
-                        fieldError
-                    );
+                    console.error(`Error filling field ${field.name}:`, fieldError);
                     fieldsSkipped++;
                 }
             });
@@ -252,9 +232,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
                             } else {
                                 sendResponse({
                                     success: false,
-                                    error: response
-                                        ? response.error
-                                        : "Unknown error",
+                                    error: response ? response.error : "Unknown error",
                                 });
                             }
                         }

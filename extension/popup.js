@@ -51,8 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 action: "detectForms",
             });
             if (detectResponse.success) {
-                elements.formsDetected.textContent =
-                    detectResponse.data.forms.length;
+                elements.formsDetected.textContent = detectResponse.data.forms.length;
             } else {
                 elements.formsDetected.textContent = "0";
             }
@@ -69,8 +68,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 action: "getProfiles",
             });
             if (response.success) {
-                elements.profileSelect.innerHTML =
-                    '<option value="">Select a profile...</option>';
+                elements.profileSelect.innerHTML = '<option value="">Select a profile...</option>';
                 response.profiles.forEach((profile) => {
                     const option = document.createElement("option");
                     option.value = profile.id;
@@ -79,16 +77,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
 
                 // Load previously selected profile from storage
-                const storageData = await chrome.storage.local.get([
-                    "selectedProfileId",
-                ]);
+                const storageData = await chrome.storage.local.get(["selectedProfileId"]);
                 const savedProfileId = storageData.selectedProfileId;
 
                 // Select saved profile or first profile by default
-                if (
-                    savedProfileId &&
-                    response.profiles.some((p) => p.id == savedProfileId)
-                ) {
+                if (savedProfileId && response.profiles.some((p) => p.id == savedProfileId)) {
                     elements.profileSelect.value = savedProfileId;
                 } else if (response.profiles.length > 0) {
                     elements.profileSelect.value = response.profiles[0].id;
@@ -99,8 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         } catch (error) {
             console.error("Failed to load profiles:", error);
-            elements.profileSelect.innerHTML =
-                '<option value="">Error loading profiles</option>';
+            elements.profileSelect.innerHTML = '<option value="">Error loading profiles</option>';
         }
     }
 
@@ -121,16 +113,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === "local" && changes.authToken) {
             // Recheck auth when token changes
-            chrome.runtime
-                .sendMessage({ action: "checkAuth" })
-                .then((response) => {
-                    if (response.success && response.authenticated) {
-                        elements.userEmail.textContent = response.user.email;
-                        showState("loggedIn");
-                    } else {
-                        showState("loggedOut");
-                    }
-                });
+            chrome.runtime.sendMessage({ action: "checkAuth" }).then((response) => {
+                if (response.success && response.authenticated) {
+                    elements.userEmail.textContent = response.user.email;
+                    showState("loggedIn");
+                } else {
+                    showState("loggedOut");
+                }
+            });
         }
     });
 
@@ -201,8 +191,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             // Show filling state
             showState("formFilling");
-            elements.formFillingMessage.textContent =
-                "Detecting form fields...";
+            elements.formFillingMessage.textContent = "Detecting form fields...";
             elements.formFillingPage.textContent = "Loading...";
             elements.formFillingFields.textContent = "0";
 
@@ -222,10 +211,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
 
             // Update progress
-            elements.formFillingMessage.textContent =
-                "Analyzing form structure...";
-            elements.formFillingPage.textContent =
-                detectResponse.data.title || "Current Page";
+            elements.formFillingMessage.textContent = "Analyzing form structure...";
+            elements.formFillingPage.textContent = detectResponse.data.title || "Current Page";
             const totalFields = detectResponse.data.forms.reduce(
                 (sum, form) => sum + form.fields.length,
                 0
@@ -233,8 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             elements.formFillingFields.textContent = totalFields;
 
             // Send form data to backend for filling
-            elements.formFillingMessage.textContent =
-                "Filling forms with your data...";
+            elements.formFillingMessage.textContent = "Filling forms with your data...";
             const selectedProfile = elements.profileSelect.value;
             const sendResponse = await chrome.runtime.sendMessage({
                 action: "sendFormData",
@@ -244,8 +230,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (sendResponse.success) {
                 // Show success state briefly
-                elements.formFillingMessage.textContent =
-                    "Forms filled successfully!";
+                elements.formFillingMessage.textContent = "Forms filled successfully!";
                 elements.formFillingMessage.style.color = "#4CAF50";
 
                 // Wait a moment to show success, then return to logged in state

@@ -20,11 +20,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             handleDetectForms(request, sendResponse);
             break;
         case "sendFormData":
-            handleSendFormData(
-                request.formData,
-                request.profileId,
-                sendResponse
-            );
+            handleSendFormData(request.formData, request.profileId, sendResponse);
             break;
         case "clearForms":
             handleClearForms(request.formData, sendResponse);
@@ -188,9 +184,7 @@ async function handleSendFormData(formData, profileId, sendResponse) {
                     } else {
                         sendResponse({
                             success: false,
-                            error:
-                                "Failed to fill forms on page: " +
-                                fillResponse.error,
+                            error: "Failed to fill forms on page: " + fillResponse.error,
                         });
                     }
                 } else {
@@ -304,8 +298,7 @@ async function handleClearForms(formData, sendResponse) {
             } else {
                 sendResponse({
                     success: false,
-                    error:
-                        "Failed to clear forms on page: " + clearResponse.error,
+                    error: "Failed to clear forms on page: " + clearResponse.error,
                 });
             }
         } else {

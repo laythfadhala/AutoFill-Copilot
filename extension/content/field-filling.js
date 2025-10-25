@@ -17,11 +17,7 @@ function fillSingleField(input, value) {
     try {
         if (input.type === "checkbox") {
             const stringValue = String(value).toLowerCase();
-            input.checked =
-                value === "1" ||
-                value === 1 ||
-                value === true ||
-                stringValue === "yes";
+            input.checked = value === "1" || value === 1 || value === true || stringValue === "yes";
         } else if (input.type === "radio") {
             // Handle radio button groups: find all radios with the same name
             const radioGroup = document.querySelectorAll(
@@ -34,16 +30,12 @@ function fillSingleField(input, value) {
                 });
                 // Check the radio whose value matches (case-insensitive)
                 const matchingRadio = Array.from(radioGroup).find(
-                    (radio) =>
-                        radio.value.toLowerCase() ==
-                        value.toString().toLowerCase()
+                    (radio) => radio.value.toLowerCase() == value.toString().toLowerCase()
                 );
                 if (matchingRadio) {
                     matchingRadio.checked = true;
                     // Trigger change event
-                    matchingRadio.dispatchEvent(
-                        new Event("change", { bubbles: true })
-                    );
+                    matchingRadio.dispatchEvent(new Event("change", { bubbles: true }));
                 }
             }
         } else if (input.tagName === "SELECT") {

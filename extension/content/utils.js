@@ -2,13 +2,10 @@
 
 // Get frameworks model value used on the page
 function getFrameworkModels(input) {
-    const wireModel =
-        input.getAttribute("wire:model") ||
-        input.getAttribute("wire:model.defer");
+    const wireModel = input.getAttribute("wire:model") || input.getAttribute("wire:model.defer");
     if (wireModel) return wireModel;
 
-    const vueModel =
-        input.getAttribute("v-model") || input.getAttribute("v-model.lazy");
+    const vueModel = input.getAttribute("v-model") || input.getAttribute("v-model.lazy");
     if (vueModel) return vueModel;
 
     const angularModel = input.getAttribute("ng-model");

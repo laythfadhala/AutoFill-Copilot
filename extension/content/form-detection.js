@@ -156,10 +156,7 @@ function getFieldLabel(input) {
         if (sibling.textContent && sibling.textContent.trim()) {
             // Only use if it's short (likely a label) and doesn't contain form controls
             const text = sibling.textContent.trim();
-            if (
-                text.length < 100 &&
-                !sibling.querySelector("input, select, textarea, button")
-            ) {
+            if (text.length < 100 && !sibling.querySelector("input, select, textarea, button")) {
                 return text;
             }
         }
@@ -195,10 +192,7 @@ function getFieldLabel(input) {
 
     // Method 6: Generate a generic label based on field name/type
     if (input.name) {
-        return (
-            input.name.charAt(0).toUpperCase() +
-            input.name.slice(1).replace(/[_-]/g, " ")
-        );
+        return input.name.charAt(0).toUpperCase() + input.name.slice(1).replace(/[_-]/g, " ");
     }
 
     return "";

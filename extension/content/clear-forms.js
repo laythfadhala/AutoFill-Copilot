@@ -25,9 +25,7 @@ function clearForms(forms) {
                     if (!field.name) {
                         console.warn(
                             `Field with no name skipped in ${
-                                isGlobalFields
-                                    ? "global fields"
-                                    : `form ${formIndex}`
+                                isGlobalFields ? "global fields" : `form ${formIndex}`
                             }`
                         );
                         fieldsSkipped++;
@@ -42,38 +40,24 @@ function clearForms(forms) {
                             document.querySelector(`[name="${safeName}"]`) ||
                             document.querySelector(`#${safeName}`) ||
                             document.querySelector(`[id="${safeName}"]`) ||
-                            document.querySelector(
-                                `[wire\\:model="${safeName}"]`
-                            ) ||
-                            document.querySelector(
-                                `[wire\\:model\\.defer="${safeName}"]`
-                            ) ||
-                            document.querySelector(
-                                `[placeholder*="${safeName}"]`
-                            );
+                            document.querySelector(`[wire\\:model="${safeName}"]`) ||
+                            document.querySelector(`[wire\\:model\\.defer="${safeName}"]`) ||
+                            document.querySelector(`[placeholder*="${safeName}"]`);
                     } else {
                         // For regular forms, search within the form element
                         input =
                             pageForm.querySelector(`[name="${safeName}"]`) ||
                             pageForm.querySelector(`#${safeName}`) ||
                             pageForm.querySelector(`[id="${safeName}"]`) ||
-                            pageForm.querySelector(
-                                `[wire\\:model="${safeName}"]`
-                            ) ||
-                            pageForm.querySelector(
-                                `[wire\\:model\\.defer="${safeName}"]`
-                            ) ||
-                            pageForm.querySelector(
-                                `[placeholder*="${safeName}"]`
-                            );
+                            pageForm.querySelector(`[wire\\:model="${safeName}"]`) ||
+                            pageForm.querySelector(`[wire\\:model\\.defer="${safeName}"]`) ||
+                            pageForm.querySelector(`[placeholder*="${safeName}"]`);
                     }
 
                     if (!input) {
                         console.warn(
                             `Field ${field.name} not found in ${
-                                isGlobalFields
-                                    ? "global fields"
-                                    : `form ${formIndex}`
+                                isGlobalFields ? "global fields" : `form ${formIndex}`
                             }`
                         );
                         fieldsSkipped++;
@@ -82,9 +66,7 @@ function clearForms(forms) {
 
                     // Skip disabled fields
                     if (input.disabled) {
-                        console.warn(
-                            `Field ${field.name} is disabled, skipping`
-                        );
+                        console.warn(`Field ${field.name} is disabled, skipping`);
                         fieldsSkipped++;
                         return;
                     }
@@ -119,10 +101,7 @@ function clearForms(forms) {
                         input.classList.remove("autofill-pulse-ring");
                     }, 1000);
                 } catch (fieldError) {
-                    console.error(
-                        `Error clearing field ${field.name}:`,
-                        fieldError
-                    );
+                    console.error(`Error clearing field ${field.name}:`, fieldError);
                     fieldsSkipped++;
                 }
             });

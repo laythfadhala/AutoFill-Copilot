@@ -5,8 +5,7 @@ function initializeClearFormButton(states, elements, showState, showError) {
         try {
             // Show filling state (reuse for clearing)
             showState("formFilling");
-            elements.formFillingMessage.textContent =
-                "Detecting form fields...";
+            elements.formFillingMessage.textContent = "Detecting form fields...";
             elements.formFillingPage.textContent = "Loading...";
             elements.formFillingFields.textContent = "0";
 
@@ -27,8 +26,7 @@ function initializeClearFormButton(states, elements, showState, showError) {
 
             // Update progress
             elements.formFillingMessage.textContent = "Clearing form fields...";
-            elements.formFillingPage.textContent =
-                detectResponse.data.title || "Current Page";
+            elements.formFillingPage.textContent = detectResponse.data.title || "Current Page";
             const totalFields = detectResponse.data.forms.reduce(
                 (sum, form) => sum + form.fields.length,
                 0
@@ -43,8 +41,7 @@ function initializeClearFormButton(states, elements, showState, showError) {
 
             if (clearResponse.success) {
                 // Show success state briefly
-                elements.formFillingMessage.textContent =
-                    "Forms cleared successfully!";
+                elements.formFillingMessage.textContent = "Forms cleared successfully!";
                 elements.formFillingMessage.style.color = "#4CAF50";
 
                 // Wait a moment to show success, then return to logged in state
