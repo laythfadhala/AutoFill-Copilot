@@ -56,7 +56,8 @@
         "scripting",
         "contextMenus",
         "tabs",
-        "sidePanel"
+        "sidePanel",
+        "windows"
     ],
     "optional_permissions": [
         "notifications"
