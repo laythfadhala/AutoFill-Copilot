@@ -133,17 +133,18 @@ import browser from "webextension-polyfill";
 
 // Function to show the side panel
 function showSidePanel() {
+    // Hide the floating button
+    const floatingContainer = document.getElementById("autofill-floating-container");
+    if (floatingContainer) {
+        floatingContainer.style.visibility = "hidden";
+        floatingContainer.style.opacity = "0";
+    }
+
     // Check if panel already exists
     let panel = document.getElementById("autofill-side-panel");
     if (panel) {
         panel.classList.add("show");
         return;
-    }
-
-    // Hide the floating button
-    const floatingContainer = document.getElementById("autofill-floating-container");
-    if (floatingContainer) {
-        floatingContainer.style.display = "none";
     }
 
     // Create the side panel container
@@ -187,7 +188,8 @@ function closeSidePanel() {
 
     // Show the floating button again
     if (floatingContainer) {
-        floatingContainer.style.display = "block";
+        floatingContainer.style.visibility = "";
+        floatingContainer.style.opacity = "1";
     }
 
     // Clear storage flag

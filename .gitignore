@@ -12,6 +12,7 @@
 *.tmp
 .env.local
 .env
+extension/manifest.json
 
 # =============================================================================
 # Docker & Containers
