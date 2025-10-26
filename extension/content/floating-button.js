@@ -24,90 +24,98 @@
     `;
 
     // Check if floating button should be visible and append accordingly
-    chrome.storage.local.get(["floatingButtonVisible", "floatingButtonTop"], (data) => {
-        if (data.floatingButtonVisible) {
-            floatingContainer.style.display = "block";
-        }
-        // Else stays hidden
-        if (data.floatingButtonTop) {
-            floatingContainer.style.setProperty("top", data.floatingButtonTop, "important");
-            floatingContainer.style.setProperty("transform", "translateY(0)", "important");
-        }
-        document.body.appendChild(floatingContainer);
-        console.log("AutoFill Copilot: Floating button injected");
-
-        // Get elements
-        const mainBtn = floatingContainer.querySelector(".autofill-floating-main-btn");
-        const mainArea = floatingContainer.querySelector(".autofill-floating-main-area");
-        const dragHandle = floatingContainer.querySelector(".autofill-floating-drag-handle");
-        const hideBtn = floatingContainer.querySelector("#hide-btn");
-
-        // Drag functionality
-        dragHandle.addEventListener("mousedown", (e) => {
-            isDragging = true;
-            dragOffsetY = e.clientY - floatingContainer.offsetTop;
-            document.addEventListener("mousemove", onMouseMove);
-            document.addEventListener("mouseup", onMouseUp);
-            e.preventDefault(); // Prevent text selection
-        });
-
-        function onMouseMove(e) {
-            if (!isDragging) return;
-            let newY = e.clientY - dragOffsetY;
-            const maxY = window.innerHeight - floatingContainer.offsetHeight;
-            newY = Math.max(0, Math.min(newY, maxY));
-            floatingContainer.style.setProperty("top", newY + "px", "important");
-            floatingContainer.style.setProperty("transform", "translateY(0)", "important");
-        }
-
-        function onMouseUp() {
-            isDragging = false;
-            // Save position
-            chrome.storage.local.set({
-                floatingButtonTop: floatingContainer.style.top,
-            });
-            document.removeEventListener("mousemove", onMouseMove);
-            document.removeEventListener("mouseup", onMouseUp);
-        }
-
-        // Hover to show hide button
-        mainArea.addEventListener("mouseenter", () => {
-            if (isDragging) return;
-            hideBtn.classList.add("visible");
-        });
-
-        // Click to open side panel
-        mainArea.addEventListener("click", () => {
-            if (isDragging) return;
-            chrome.runtime.sendMessage({ action: "openSidePanel" });
-        });
-
-        // Hide hide button after leaving the main button
-        mainBtn.addEventListener("mouseleave", () => {
-            hideBtn.classList.remove("visible");
-        });
-
-        // Hide button
-        hideBtn.addEventListener("click", () => {
-            floatingContainer.style.display = "none";
-            chrome.storage.local.set({ floatingButtonVisible: false });
-        });
-
-        // Listen for messages from popup/background
-        chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-            if (request.action === "showFloatingButton") {
+    chrome.storage.local.get(
+        ["floatingButtonVisible", "floatingButtonTop", "sidePanelOpen"],
+        (data) => {
+            if (data.floatingButtonVisible) {
                 floatingContainer.style.display = "block";
-                chrome.storage.local.set({
-                    floatingButtonVisible: true,
-                });
-                sendResponse({ success: true });
-            } else if (request.action === "showSidePanel") {
-                showSidePanel();
-                sendResponse({ success: true });
             }
-            return true;
-        });
-    });
+            // Else stays hidden
+            if (data.floatingButtonTop) {
+                floatingContainer.style.setProperty("top", data.floatingButtonTop, "important");
+                floatingContainer.style.setProperty("transform", "translateY(0)", "important");
+            }
+            document.body.appendChild(floatingContainer);
+            console.log("AutoFill Copilot: Floating button injected");
+
+            // Check if side panel was open before reload
+            if (data.sidePanelOpen) {
+                showSidePanel();
+            }
+
+            // Get elements
+            const mainBtn = floatingContainer.querySelector(".autofill-floating-main-btn");
+            const mainArea = floatingContainer.querySelector(".autofill-floating-main-area");
+            const dragHandle = floatingContainer.querySelector(".autofill-floating-drag-handle");
+            const hideBtn = floatingContainer.querySelector("#hide-btn");
+
+            // Drag functionality
+            dragHandle.addEventListener("mousedown", (e) => {
+                isDragging = true;
+                dragOffsetY = e.clientY - floatingContainer.offsetTop;
+                document.addEventListener("mousemove", onMouseMove);
+                document.addEventListener("mouseup", onMouseUp);
+                e.preventDefault(); // Prevent text selection
+            });
+
+            function onMouseMove(e) {
+                if (!isDragging) return;
+                let newY = e.clientY - dragOffsetY;
+                const maxY = window.innerHeight - floatingContainer.offsetHeight;
+                newY = Math.max(0, Math.min(newY, maxY));
+                floatingContainer.style.setProperty("top", newY + "px", "important");
+                floatingContainer.style.setProperty("transform", "translateY(0)", "important");
+            }
+
+            function onMouseUp() {
+                isDragging = false;
+                // Save position
+                chrome.storage.local.set({
+                    floatingButtonTop: floatingContainer.style.top,
+                });
+                document.removeEventListener("mousemove", onMouseMove);
+                document.removeEventListener("mouseup", onMouseUp);
+            }
+
+            // Hover to show hide button
+            mainArea.addEventListener("mouseenter", () => {
+                if (isDragging) return;
+                hideBtn.classList.add("visible");
+            });
+
+            // Click to open side panel
+            mainArea.addEventListener("click", () => {
+                if (isDragging) return;
+                chrome.runtime.sendMessage({ action: "openSidePanel" });
+            });
+
+            // Hide hide button after leaving the main button
+            mainBtn.addEventListener("mouseleave", () => {
+                hideBtn.classList.remove("visible");
+            });
+
+            // Hide button
+            hideBtn.addEventListener("click", () => {
+                floatingContainer.style.display = "none";
+                chrome.storage.local.set({ floatingButtonVisible: false });
+            });
+
+            // Listen for messages from popup/background
+            chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+                if (request.action === "showFloatingButton") {
+                    floatingContainer.style.display = "block";
+                    chrome.storage.local.set({
+                        floatingButtonVisible: true,
+                    });
+                    sendResponse({ success: true });
+                } else if (request.action === "showSidePanel") {
+                    showSidePanel();
+                    sendResponse({ success: true });
+                }
+                return true;
+            });
+        }
+    );
 })();
 
 // Function to show the side panel
@@ -142,6 +150,9 @@ function showSidePanel() {
         panel.classList.add("show");
     }, 10);
 
+    // Set storage flag
+    chrome.storage.local.set({ sidePanelOpen: true });
+
     // Close button functionality
     const closeBtn = panel.querySelector("#close-panel-btn");
     closeBtn.addEventListener("click", () => {
@@ -165,4 +176,7 @@ function closeSidePanel() {
     if (floatingContainer) {
         floatingContainer.style.display = "block";
     }
+
+    // Clear storage flag
+    chrome.storage.local.set({ sidePanelOpen: false });
 }
