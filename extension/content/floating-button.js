@@ -101,8 +101,68 @@
                     floatingButtonVisible: true,
                 });
                 sendResponse({ success: true });
+            } else if (request.action === "showSidePanel") {
+                showSidePanel();
+                sendResponse({ success: true });
             }
             return true;
         });
     });
 })();
+
+// Function to show the side panel
+function showSidePanel() {
+    // Check if panel already exists
+    let panel = document.getElementById("autofill-side-panel");
+    if (panel) {
+        panel.classList.add("show");
+        return;
+    }
+
+    // Hide the floating button
+    const floatingContainer = document.getElementById("autofill-floating-container");
+    if (floatingContainer) {
+        floatingContainer.style.display = "none";
+    }
+
+    // Create the side panel container
+    panel = document.createElement("div");
+    panel.id = "autofill-side-panel";
+    panel.innerHTML = `
+        <button class="panel-close-btn" id="close-panel-btn">×</button>
+        <iframe src="${chrome.runtime.getURL(
+            "popup.html"
+        )}" style="width: 100%; height: 100vh; border: none;" scrolling="no"></iframe>
+    `;
+
+    document.body.appendChild(panel);
+
+    // Show the panel
+    setTimeout(() => {
+        panel.classList.add("show");
+    }, 10);
+
+    // Close button functionality
+    const closeBtn = panel.querySelector("#close-panel-btn");
+    closeBtn.addEventListener("click", () => {
+        closeSidePanel();
+    });
+}
+
+// Function to close the side panel
+function closeSidePanel() {
+    const panel = document.getElementById("autofill-side-panel");
+    const floatingContainer = document.getElementById("autofill-floating-container");
+
+    if (panel) {
+        panel.classList.remove("show");
+        setTimeout(() => {
+            panel.remove();
+        }, 300);
+    }
+
+    // Show the floating button again
+    if (floatingContainer) {
+        floatingContainer.style.display = "block";
+    }
+}

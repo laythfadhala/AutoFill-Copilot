@@ -315,21 +315,12 @@ async function handleClearForms(formData, sendResponse) {
 
 async function handleOpenSidePanel(sendResponse, sender) {
     try {
-        if (chrome.sidePanel) {
-            // Use native side panel for Chrome and Chromium-based browsers
-            await chrome.sidePanel.open({ tabId: sender.tab.id });
+        // Check if native side panel is supported (Chrome)
+        if (chrome.sidePanel && chrome.sidePanel.open) {
+            chrome.sidePanel.open({ tabId: sender.tab.id });
         } else {
-            // Fallback for other browsers: create a popup window positioned as side panel
-            const tab = await chrome.tabs.get(sender.tab.id);
-            const window = await chrome.windows.get(tab.windowId);
-            await chrome.windows.create({
-                url: chrome.runtime.getURL("popup.html"),
-                type: "popup",
-                width: 350,
-                height: window.height,
-                left: window.left + window.width - 350,
-                top: window.top,
-            });
+            // Fallback to iframe for other browsers
+            chrome.tabs.sendMessage(sender.tab.id, { action: "showSidePanel" });
         }
         sendResponse({ success: true });
     } catch (error) {

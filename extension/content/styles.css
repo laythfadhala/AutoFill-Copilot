@@ -299,6 +299,58 @@
     visibility: visible !important;
 }
 
+/* Side Panel Styles */
+#autofill-side-panel {
+    position: fixed !important;
+    top: 0 !important;
+    right: -400px !important;
+    width: 350px !important;
+    height: 100vh !important;
+    background: white !important;
+    border-left: 1px solid #e0e0e0 !important;
+    box-shadow: -4px 0 20px rgba(0, 0, 0, 0.1) !important;
+    z-index: 2147483646 !important; /* Below floating button */
+    transition: right 0.3s ease !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+    overflow: visible !important; /* Allow content to overflow */
+}
+
+#autofill-side-panel.show {
+    right: 0 !important;
+}
+
+#autofill-side-panel .panel-content {
+    padding: 16px !important;
+}
+
+/* Close Button for Side Panel */
+/* Close Button for Side Panel */
+#autofill-side-panel .panel-close-btn {
+    position: absolute !important;
+    top: 10px !important; /* Top of the panel */
+    left: 10px !important; /* Left corner of the panel */
+    width: 24px !important;
+    height: 24px !important;
+    background: transparent !important; /* Fully transparent background */
+    border: none !important; /* Removed border */
+    border-radius: 50% !important; /* Perfect circle */
+    color: white !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    z-index: 2147483647 !important; /* Above everything */
+    font-size: 18px !important; /* Larger X */
+    font-weight: bold !important;
+    user-select: none !important;
+}
+
+#autofill-side-panel .panel-close-btn:hover {
+    background: rgba(102, 126, 234, 0.3) !important; /* Slightly visible on hover for feedback */
+    transform: scale(1.1) !important; /* Slight scale on hover */
+}
+
 @keyframes autofill-spin {
     0% {
         transform: rotate(0deg);

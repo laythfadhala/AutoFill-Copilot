@@ -69,7 +69,9 @@
     "web_accessible_resources": [
         {
             "resources": [
-                "icons/*"
+                "icons/*",
+                "popup.html",
+                "popup.css"
             ],
             "matches": [
                 "<all_urls>"
