@@ -44,6 +44,36 @@ Intelligent form auto-fill browser extension powered by AI that securely detects
     - Click the AutoFill Copilot icon and select "Fill Current Form"
     - Or use the visual indicators on form fields
 
+## Development
+
+### Prerequisites
+
+-   Node.js and npm
+
+### Setup
+
+```bash
+npm install
+```
+
+### Build
+
+```bash
+npm run build
+```
+
+### Watch Mode (for development)
+
+```bash
+npm run watch
+```
+
+### Cross-Browser Compatibility
+
+This extension uses `webextension-polyfill` to ensure compatibility across different browsers (Chrome, Firefox, Safari).
+
+The build process bundles the polyfill with all extension scripts, creating browser-compatible versions in the `dist/` directory.
+
 ## Extension Components
 
 ### Core Files

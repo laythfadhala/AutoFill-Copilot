@@ -1,4 +1,6 @@
 // Form Filling Content Script
+import browser from "webextension-polyfill";
+
 var currentField = null;
 
 // Inject pulse style if not already present

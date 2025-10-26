@@ -1,4 +1,6 @@
 // Sync auth between web app and extension
+import browser from "webextension-polyfill";
+
 (function () {
     const allowedOrigins = [
         "http://localhost", //TODO: remove before production

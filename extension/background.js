@@ -1,4 +1,6 @@
 // AutoFill Copilot Background Script
+import browser from "webextension-polyfill";
+
 const API_BASE_URL = "http://localhost/api"; //TODO: replace with production URL
 
 // Handle extension messages
@@ -114,7 +116,7 @@ async function handleDetectForms(request, sendResponse) {
         // Execute the content scripts to detect forms
         const results = await chrome.scripting.executeScript({
             target: { tabId: tab.id },
-            files: ["content/form-detection.js", "content/form-filling.js"],
+            files: ["dist/content/form-detection.js", "dist/content/form-filling.js"],
         });
 
         // The content script should have been injected already, so we can send a message

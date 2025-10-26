@@ -1,4 +1,6 @@
 // Clear Form functionality
+import browser from "webextension-polyfill";
+
 function initializeClearFormButton(states, elements, showState, showError) {
     // Clear Form button
     elements.clearFormBtn?.addEventListener("click", async () => {
@@ -57,3 +59,6 @@ function initializeClearFormButton(states, elements, showState, showError) {
         }
     });
 }
+
+// Export the function so it can be used in popup.js
+window.initializeClearFormButton = initializeClearFormButton;

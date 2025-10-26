@@ -17,7 +17,9 @@
         "default_path": "popup.html"
     },
     "background": {
-        "service_worker": "dist/background.js"
+        "scripts": [
+            "dist/background.js"
+        ]
     },
     "content_scripts": [
         {

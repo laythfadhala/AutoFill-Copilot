@@ -1,9 +1,9 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "AutoFill Copilot",
     "version": "1.0.2",
     "description": "Intelligent form auto-fill extension powered by AI. Securely detects and fills forms on any website.",
-    "action": {
+    "browser_action": {
         "default_popup": "popup.html",
         "default_title": "AutoFill Copilot",
         "default_icon": {
@@ -13,11 +13,10 @@
             "128": "icons/icon-128.png"
         }
     },
-    "side_panel": {
-        "default_path": "popup.html"
-    },
     "background": {
-        "service_worker": "dist/background.js"
+        "scripts": [
+            "dist/background.js"
+        ]
     },
     "content_scripts": [
         {
@@ -54,39 +53,21 @@
     "permissions": [
         "storage",
         "activeTab",
-        "scripting",
-        "contextMenus",
         "tabs",
-        "sidePanel",
-        "windows"
+        "contextMenus",
+        "http://localhost/*",
+        "https://*/*"
     ],
-    "optional_permissions": [
-        "notifications"
-    ],
-    "host_permissions": [
-        "https://*/*",
-        "http://localhost/*"
-    ],
-    "content_security_policy": {
-        "extension_pages": "script-src 'self'; object-src 'self';"
-    },
+    "content_security_policy": "script-src 'self'; object-src 'self'; style-src 'self' 'unsafe-inline';",
     "web_accessible_resources": [
-        {
-            "resources": [
-                "icons/*",
-                "popup.html",
-                "popup.css"
-            ],
-            "matches": [
-                "<all_urls>"
-            ]
-        }
+        "icons/*",
+        "popup.html",
+        "popup.css"
     ],
     "icons": {
         "16": "icons/icon-16.png",
         "32": "icons/icon-32.png",
         "48": "icons/icon-48.png",
         "128": "icons/icon-128.png"
-    },
-    "minimum_chrome_version": "88"
+    }
 }

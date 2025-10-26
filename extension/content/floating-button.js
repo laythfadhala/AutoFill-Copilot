@@ -1,4 +1,6 @@
 // Floating Button Content Script
+import browser from "webextension-polyfill";
+
 (function () {
     console.log("AutoFill Copilot: Floating button script loaded");
 
@@ -113,6 +115,17 @@
                     sendResponse({ success: true });
                 }
                 return true;
+            });
+
+            // Listen for storage changes to show/hide floating button
+            chrome.storage.onChanged.addListener((changes, namespace) => {
+                if (namespace === "local" && changes.floatingButtonVisible) {
+                    if (changes.floatingButtonVisible.newValue) {
+                        floatingContainer.style.display = "block";
+                    } else {
+                        floatingContainer.style.display = "none";
+                    }
+                }
             });
         }
     );

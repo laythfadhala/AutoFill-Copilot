@@ -1,0 +1,24 @@
+{
+    "name": "extension",
+    "version": "1.0.0",
+    "description": "Intelligent form auto-fill browser extension powered by AI that securely detects and fills forms on any website.",
+    "main": "background.js",
+    "scripts": {
+        "build": "webpack",
+        "build:chrome": "webpack && cp manifest-chrome.json manifest.json",
+        "build:firefox": "webpack && cp manifest-firefox.json manifest.json",
+        "build:safari": "webpack && cp manifest-safari.json manifest.json",
+        "watch": "webpack --watch",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "webextension-polyfill": "^0.12.0"
+    },
+    "devDependencies": {
+        "webpack": "^5.102.1",
+        "webpack-cli": "^6.0.1"
+    }
+}

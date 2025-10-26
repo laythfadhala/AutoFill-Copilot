@@ -1,4 +1,5 @@
 // Forms Observer - Monitors DOM changes and updates detected forms in storage
+import browser from "webextension-polyfill";
 
 // Function to store detected forms in storage
 function storeDetectedForms() {

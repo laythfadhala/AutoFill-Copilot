@@ -1,5 +1,16 @@
 // AutoFill Copilot Popup Script
+import browser from "webextension-polyfill";
+
 const BASE_URL = "http://localhost"; // TODO: replace with production URL
+
+async function initializeFloatingButton() {
+    try {
+        await chrome.storage.local.set({ floatingButtonVisible: true });
+        // The floating button will show automatically when storage changes
+    } catch (error) {
+        console.error("Failed to show floating button:", error);
+    }
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
     // Initialize floating button
