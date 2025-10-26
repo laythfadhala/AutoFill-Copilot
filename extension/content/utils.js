@@ -66,6 +66,86 @@ var EXCLUDED_FIELD_NAMES = [
     "g-recaptcha-response",
 ];
 
+// Forms to exclude from detection
+var EXCLUDED_FORM_CLASSES = [
+    "mk-searchform",
+    "searchform",
+    "search-form",
+    "search_form",
+    "site-search",
+    "search-box",
+    "search-container",
+    "navbar-search",
+    "header-search",
+    "wp-search",
+    "woocommerce-product-search",
+];
+
+var EXCLUDED_FORM_IDS = [
+    "searchform",
+    "search-form",
+    "search_form",
+    "searchForm",
+    "site-search",
+    "search-box",
+    "search-container",
+    "navbar-search",
+    "header-search",
+];
+
+// Check if a form should be excluded from detection
+function shouldExcludeForm(form) {
+    // Get all detectable input fields (excluding hidden, submit, etc.)
+    const inputs = form.querySelectorAll("input, select, textarea");
+    let detectableFields = 0;
+
+    inputs.forEach((input) => {
+        // Count fields that would normally be detected
+        if (!EXCLUDED_FIELD_TYPES.includes(input.type)) {
+            const fieldName = (input.name || input.id || "").toLowerCase();
+            if (!EXCLUDED_FIELD_NAMES.some((excluded) => fieldName.includes(excluded))) {
+                detectableFields++;
+            }
+        }
+    });
+
+    // Exclude forms with only one detectable field (likely search forms)
+    if (detectableFields <= 1) {
+        return true;
+    }
+
+    // Keep existing checks for good measure
+    // Check class names
+    const classList = Array.from(form.classList);
+    if (
+        classList.some((className) =>
+            EXCLUDED_FORM_CLASSES.some((excluded) =>
+                className.toLowerCase().includes(excluded.toLowerCase())
+            )
+        )
+    ) {
+        return true;
+    }
+
+    // Check ID
+    if (
+        form.id &&
+        EXCLUDED_FORM_IDS.some((excluded) => form.id.toLowerCase().includes(excluded.toLowerCase()))
+    ) {
+        return true;
+    }
+
+    // Check action URL for search-related terms
+    if (
+        form.action &&
+        (form.action.toLowerCase().includes("search") || form.action.toLowerCase().includes("/?s="))
+    ) {
+        return true;
+    }
+
+    return false;
+}
+
 // Get field label from various sources
 function getFieldLabel(input) {
     // Method 1: Check for label with 'for' attribute matching input id
