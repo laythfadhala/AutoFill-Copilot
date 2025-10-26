@@ -41,6 +41,7 @@
             "js": [
                 "content/utils.js",
                 "content/form-detection.js",
+                "content/forms-observer.js",
                 "content/field-filling.js",
                 "content/clear-forms.js",
                 "content/animation-utils.js",

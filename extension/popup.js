@@ -30,6 +30,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         formSelectPopup: document.getElementById("form-select-popup"),
     };
 
+    // Listen for changes to detected forms in storage
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === "local" && changes.detectedForms) {
+            updateDetectedForms();
+        }
+    });
+
     function showState(stateName) {
         Object.values(states).forEach((el) => el.classList.add("hidden"));
         if (states[stateName]) {
@@ -59,11 +66,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function updateDetectedForms() {
         try {
-            const detectResponse = await chrome.runtime.sendMessage({
-                action: "detectForms",
-            });
-            if (detectResponse.success) {
-                const forms = detectResponse.data.forms;
+            const result = await chrome.storage.local.get(["detectedForms"]);
+            const pageData = result.detectedForms;
+            if (pageData && pageData.forms) {
+                const forms = pageData.forms;
                 elements.formsDetected.textContent = forms.length;
 
                 // Populate form selector
@@ -86,9 +92,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 elements.formSelectPopup.innerHTML = '<option value="">No forms detected</option>';
             }
         } catch (error) {
-            console.error("Failed to detect forms:", error);
+            console.error("Failed to load forms from storage:", error);
             elements.formsDetected.textContent = "0";
-            elements.formSelectPopup.innerHTML = '<option value="">Error detecting forms</option>';
+            elements.formSelectPopup.innerHTML = '<option value="">Error loading forms</option>';
         }
     }
 
