@@ -132,6 +132,17 @@ body {
     background: rgba(255, 255, 255, 0.2);
 }
 
+.button-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.button-row .button {
+    flex: 1;
+    margin-bottom: 0;
+}
+
 .user-info {
     background: rgba(255, 255, 255, 0.1);
     padding: 12px;

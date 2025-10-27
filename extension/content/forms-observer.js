@@ -80,3 +80,12 @@ if (document.readyState === "loading") {
 } else {
     initializeFormsObserver();
 }
+
+// Listen for messages from popup
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "reloadForms") {
+        storeDetectedForms();
+        sendResponse({ success: true });
+    }
+    return true;
+});

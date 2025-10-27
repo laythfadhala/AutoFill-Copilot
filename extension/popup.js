@@ -31,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         logoutBtn: document.getElementById("logout-btn"),
         fillCurrentFormBtn: document.getElementById("fill-current-form-btn"),
         clearFormBtn: document.getElementById("clear-form-btn"),
+        reloadFormsBtn: document.getElementById("reload-forms-btn"),
         formFillRetryBtn: document.getElementById("form-fill-retry-btn"),
         formFillingMessage: document.getElementById("form-filling-message"),
         formFillingPage: document.getElementById("form-filling-page"),
@@ -310,6 +311,32 @@ document.addEventListener("DOMContentLoaded", async () => {
         } catch (error) {
             console.error("Fill form error:", error);
             showError("An error occurred while processing forms");
+        }
+    });
+
+    // Reload Forms button
+    elements.reloadFormsBtn?.addEventListener("click", async () => {
+        try {
+            // Show loading state
+            elements.reloadFormsBtn.innerHTML = '<div class="spinner"></div> Searching...';
+            elements.reloadFormsBtn.disabled = true;
+
+            // Send message to content script to reload forms
+            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+            if (tab) {
+                await chrome.tabs.sendMessage(tab.id, { action: "reloadForms" });
+                // Reset button
+                elements.reloadFormsBtn.innerHTML = "Search Forms";
+                elements.reloadFormsBtn.disabled = false;
+            } else {
+                throw new Error("No active tab found");
+            }
+        } catch (error) {
+            console.error("Reload forms error:", error);
+            showError("Failed to reload forms");
+            // Reset button on error
+            elements.reloadFormsBtn.innerHTML = "Reload Forms";
+            elements.reloadFormsBtn.disabled = false;
         }
     });
 
