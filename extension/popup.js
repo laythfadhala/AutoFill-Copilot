@@ -99,14 +99,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (forms.length > 0) {
                     elements.formSelectPopup.value = forms[0].id;
                 }
+
+                // Update button text to show forms found
+                const formText = forms.length === 1 ? "Form" : "Forms";
+                elements.reloadFormsBtn.textContent = `${forms.length} ${formText} found`;
+                // Reset to "Search Forms" after 1 second
+                setTimeout(() => {
+                    elements.reloadFormsBtn.textContent = "Search Forms";
+                }, 1000);
             } else {
                 elements.formsDetected.textContent = "0";
                 elements.formSelectPopup.innerHTML = '<option value="">No forms detected</option>';
+                elements.reloadFormsBtn.textContent = "Search Forms";
             }
         } catch (error) {
             console.error("Failed to load forms from storage:", error);
             elements.formsDetected.textContent = "0";
             elements.formSelectPopup.innerHTML = '<option value="">Error loading forms</option>';
+            elements.reloadFormsBtn.textContent = "Search Forms";
         }
     }
 
