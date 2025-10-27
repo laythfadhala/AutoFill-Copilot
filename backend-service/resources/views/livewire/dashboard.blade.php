@@ -16,7 +16,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link {{ $activeTab === 'data' ? 'active' : '' }}" wire:click="setActiveTab('data')"
                 type="button">
-                Extracted Data
+                Manage Data
             </button>
         </li>
     </ul>

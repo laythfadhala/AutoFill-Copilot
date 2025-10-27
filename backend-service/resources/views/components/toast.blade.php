@@ -1,4 +1,3 @@
-Toast Component
 @php
     $message = session('success') ?: session('error');
     $type = session('success') ? 'success' : (session('error') ? 'error' : null);

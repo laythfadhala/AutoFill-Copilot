@@ -52,7 +52,6 @@ class ProfileManager extends Component
             $this->type = $profile['type'];
             $this->is_default = $profile['is_default'];
             $this->is_active = $profile['is_active'];
-            $this->showCreateForm = true;
         }
     }
 
@@ -144,6 +143,11 @@ class ProfileManager extends Component
         $this->showCreateForm = false;
         $this->editingProfile = null;
         $this->resetValidation();
+    }
+
+    public function cancel()
+    {
+        $this->resetForm();
     }
 
     public function render()
