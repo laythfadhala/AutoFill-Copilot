@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('google_id')->nullable()->unique();
             $table->string('microsoft_id')->nullable()->unique();
             $table->string('password')->nullable()->change();
+            $table->string('avatar')->nullable()->after('microsoft_id');
         });
     }
 
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->dropColumn('google_id');
             $table->dropColumn('microsoft_id');
             $table->string('password')->nullable(false)->change();
+            $table->dropColumn('avatar');
         });
     }
 };

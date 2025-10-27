@@ -31,6 +31,7 @@ class AuthController extends Controller
                 'name' => $googleUser->name,
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
+                'avatar' => $googleUser->avatar,
             ]);
         }
 
@@ -57,6 +58,9 @@ class AuthController extends Controller
                 'name' => $microsoftUser->name,
                 'email' => $microsoftUser->email,
                 'microsoft_id' => $microsoftUser->id,
+                // Note: Microsoft doesn't provide avatar URLs in basic OAuth
+                // Would need Microsoft Graph API with additional scopes for photos
+                'avatar' => null,
             ]);
         }
 

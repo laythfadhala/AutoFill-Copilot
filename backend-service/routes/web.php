@@ -3,9 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\BillingController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/settings', [SettingsController::class, 'edit'])->name('user.settings');
+    Route::get('/account', [AccountController::class, 'manage'])->name('account.manage');
+    Route::get('/billing', [BillingController::class, 'subscriptions'])->name('billing.subscriptions');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
