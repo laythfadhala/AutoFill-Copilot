@@ -24,7 +24,7 @@ class TogetherAIService
         - Response must be in the same language as the document including the keys.
         - Response must always have 'Title' of the document.
         - Flatten the structure into one dimension key:value.
-        - Output only flattened raw valid JSON, no markdown or text, no explanations, no white spaces.
+        - Output only flattened raw valid JSON, no markdown or text, no explanations.
         PROMPT;
     private string $apiUrl;
     private ?string $apiKey;
