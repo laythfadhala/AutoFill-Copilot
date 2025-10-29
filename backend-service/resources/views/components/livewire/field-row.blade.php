@@ -29,15 +29,18 @@
     @else
         <td style="width: 30%;">
             <div class="d-flex align-items-center h-100">
-                <code class="text-muted w-100">{{ $fieldKey }}</code>
+                <code class="text-muted w-100 text-break d-block"
+                    style="word-wrap: break-word; white-space: pre-wrap; font-size: 0.875em;">{{ $fieldKey }}</code>
             </div>
         </td>
         <td style="width: 60%;">
             <div class="d-flex align-items-start h-100">
                 @if (is_array($fieldValue) || is_object($fieldValue))
-                    <code class="text-muted small w-100">{{ json_encode($fieldValue, JSON_PRETTY_PRINT) }}</code>
+                    <code class="text-muted small w-100 text-break d-block"
+                        style="word-wrap: break-word; white-space: pre-wrap;">{{ json_encode($fieldValue, JSON_PRETTY_PRINT) }}</code>
                 @else
-                    <span class="text-break w-100">{{ $fieldValue }}</span>
+                    <span class="text-break w-100 d-block"
+                        style="word-wrap: break-word; white-space: pre-wrap;">{{ $fieldValue }}</span>
                 @endif
             </div>
         </td>

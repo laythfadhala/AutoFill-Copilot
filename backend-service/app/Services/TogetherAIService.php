@@ -2,22 +2,25 @@
 
 namespace App\Services;
 
+use App\Traits\SanitizesJsonStrings;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
 class TogetherAIService
 {
+    use SanitizesJsonStrings;
     /**
      * Unified extraction prompt for document factual data
      */
     private const DOCUMENT_EXTRACTION_PROMPT = <<<PROMPT
-        Extract only factual data from the document and return a single valid, compact JSON object.
+        Extract all factual data from the document and return a single valid, compact JSON object.
         Keep strictly all:
         - Names, addresses, notes, grades, dates, numbers, IDs, tax data, recipients, costs, rates, percentages, amounts, money, contact, banking or any other important details.
         Remove completely:
         - Any paragraphs or sentences explaining reasons, laws, legal rights, appeals, data protection, privacy, or instructions.
         Formatting rules:
+        - Do not omit any key:value pair, include all extracted data in the output json.
         - Response must be in the same language as the document including the keys.
         - Response must always have 'Title' of the document.
         - Flatten the structure into one dimension key:value.
@@ -44,28 +47,6 @@ class TogetherAIService
     }
 
     /**
-     * Clean markdown code blocks from AI response and extract JSON
-     */
-    public function cleanMarkdownCodeBlocks(string $content): string
-    {
-        // Remove ```json or ``` markers
-        $content = preg_replace('/^```(?:json)?\s*$/m', '', $content);
-        $content = preg_replace('/^```\s*$/m', '', $content);
-
-        // Find the first '{' and last '}' to extract JSON content
-        $startPos = strpos($content, '{');
-        $endPos = strrpos($content, '}');
-
-        if ($startPos !== false && $endPos !== false && $endPos > $startPos) {
-            $jsonContent = substr($content, $startPos, $endPos - $startPos + 1);
-            return trim($jsonContent);
-        }
-
-        // Trim whitespace
-        return trim($content);
-    }
-
-    /**
      * Call TogetherAI API with extracted text
      */
     public function extractDataFrom(string $text): string
@@ -75,7 +56,7 @@ class TogetherAIService
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
-        ])->timeout(30)->post($this->apiUrl, [
+        ])->timeout(60)->post($this->apiUrl, [
             'model' => $this->defaultModel,
             'messages' => [
                 [
@@ -83,7 +64,7 @@ class TogetherAIService
                     'content' => $prompt
                 ]
             ],
-            'max_tokens' => 5000,
+            'max_tokens' => 10000,
             'temperature' => 0.2
         ]);
 
@@ -92,7 +73,7 @@ class TogetherAIService
             $content = $data['choices'][0]['message']['content'] ?? '';
 
             // Clean markdown code blocks from response
-            $content = $this->cleanMarkdownCodeBlocks($content);
+            $content = $this->sanitizeResponse($content);
 
             Log::info('AI response received', ['length' => strlen($content)]);
             return $content;
@@ -165,7 +146,7 @@ class TogetherAIService
                     'content' => $prompt
                 ]
             ],
-            'max_tokens' => 2000,
+            'max_tokens' => 5000,
             'temperature' => 0.2
         ]);
 
@@ -174,7 +155,7 @@ class TogetherAIService
             $content = $data['choices'][0]['message']['content'] ?? '';
 
             // Clean markdown code blocks from response
-            $content = $this->cleanMarkdownCodeBlocks($content);
+            $content = $this->sanitizeResponse($content);
 
             // Parse the JSON response
             $filledData = json_decode($content, true);

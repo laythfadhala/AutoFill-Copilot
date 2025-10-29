@@ -11,12 +11,13 @@ use Illuminate\Support\Facades\DB;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
 use App\Services\TextExtraction\TextExtractionService;
+use App\Traits\FlattensJson;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Exception;
 
 class ProcessDocument implements ShouldQueue, ShouldBeUnique
 {
-    use Queueable, Batchable;
+    use Queueable, Batchable, FlattensJson;
 
     // this is the duration (in seconds) for which the job should be considered unique
     public $uniqueFor = 1000;
@@ -161,7 +162,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 'filename' => $this->originalFilename,
                 'uploaded_at' => now()->toISOString(),
                 'file_path' => $this->filePath,
-                'extracted_data' => $jsonData,
+                'extracted_data' => $this->flattenJsonRecursive($jsonData ?? []),
             ];
 
             // Use database transaction with row locking to prevent race conditions
