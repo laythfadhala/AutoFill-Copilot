@@ -49,7 +49,7 @@ class TogetherAIService
     /**
      * Call TogetherAI API with extracted text
      */
-    public function extractDataFrom(string $text): string
+    public function extractDataFrom(string $text): array
     {
         $prompt = self::DOCUMENT_EXTRACTION_PROMPT . "\n" . $text;
 
@@ -71,12 +71,16 @@ class TogetherAIService
         if ($response->successful()) {
             $data = $response->json();
             $content = $data['choices'][0]['message']['content'] ?? '';
+            $usage = $data['usage'] ?? [];
 
             // Clean markdown code blocks from response
             $content = $this->sanitizeResponse($content);
 
             Log::info('AI response received', ['length' => strlen($content)]);
-            return $content;
+            return [
+                'content' => $content,
+                'usage' => $usage
+            ];
         } else {
             Log::error('AI API request failed', ['status' => $response->status(), 'body' => $response->body()]);
             throw new Exception('AI API request failed with status ' . $response->status() . ': ' . $response->body());
@@ -153,6 +157,7 @@ class TogetherAIService
         if ($response->successful()) {
             $data = $response->json();
             $content = $data['choices'][0]['message']['content'] ?? '';
+            $usage = $data['usage'] ?? [];
 
             // Clean markdown code blocks from response
             $content = $this->sanitizeResponse($content);
@@ -173,7 +178,10 @@ class TogetherAIService
                 'has_profile_data' => !empty($userProfileData)
             ]);
 
-            return $filledData;
+            return [
+                'data' => $filledData,
+                'usage' => $usage
+            ];
         } else {
             Log::error('AI form filling request failed', ['status' => $response->status(), 'body' => $response->body()]);
             throw new Exception('AI form filling request failed with status ' . $response->status() . ': ' . $response->body());

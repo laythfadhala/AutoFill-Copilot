@@ -25,11 +25,11 @@
     <div class="tab-content mt-4">
         @if ($activeTab === 'profiles')
             <div class="tab-pane active">
-                @livewire('profile-manager')
+                @livewire('profile-manager', ['isTokenLimitReached' => $isTokenLimitReached, 'isProfileLimitReached' => $isProfileLimitReached])
             </div>
         @elseif($activeTab === 'upload')
             <div class="tab-pane active">
-                @livewire('document-upload')
+                @livewire('document-upload', ['isTokenLimitReached' => $isTokenLimitReached, 'isDocumentLimitReached' => $isDocumentLimitReached])
             </div>
         @elseif($activeTab === 'data')
             <div class="tab-pane active">

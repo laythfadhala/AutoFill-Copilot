@@ -54,4 +54,9 @@ return [
         'tenant' => env('MICROSOFT_TENANT', 'common'),
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+    ],
+
 ];

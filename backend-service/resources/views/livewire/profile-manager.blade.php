@@ -1,7 +1,10 @@
 <div>
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5>Manage Profiles</h5>
-        <button wire:click="openCreateForm" class="btn btn-primary btn-sm">Create New Profile</button>
+        <button wire:click="openCreateForm" class="btn btn-primary btn-sm"
+            @if ($isProfileLimitReached) disabled title="Profile limit reached - upgrade to create more profiles" @endif>
+            Create New Profile
+        </button>
     </div>
 
     <x-toast />

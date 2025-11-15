@@ -82,17 +82,33 @@ class FieldController extends Controller
                 'timestamp' => now()->toISOString()
             ];
 
-            $filledData = $aiService->fillForm($formData, $profileData);
+            $result = $aiService->fillForm($formData, $profileData);
 
             // Check if AI service returned an error
-            if (isset($filledData['error'])) {
+            if (isset($result['error'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'AI service error',
-                    'error' => $filledData['error'],
-                    'error_type' => $filledData['error_type'] ?? 'unknown'
+                    'error' => $result['error'],
+                    'error_type' => $result['error_type'] ?? 'unknown'
                 ], 500);
             }
+
+            $filledData = $result['data'];
+            $aiUsage = $result['usage'];
+
+            // Consume actual tokens used by AI
+            $tokenUsage = TokenService::consumeActualTokens(
+                auth()->user(),
+                \App\Enums\TokenAction::FIELD_FILL,
+                $aiUsage,
+                [
+                    'field_name' => $fieldData['name'],
+                    'field_type' => $fieldData['type'],
+                    'profile_used' => $profileData ? true : false,
+                    'profile_id' => $userProfile ? $userProfile->id : null,
+                ]
+            );
 
             // Extract the filled value for this specific field
             $fieldName = $fieldData['name'];

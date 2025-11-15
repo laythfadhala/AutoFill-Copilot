@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
+use App\Services\TokenService;
 use App\Services\TextExtraction\TextExtractionService;
 use App\Traits\FlattensJson;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -91,12 +92,13 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
 
             // Send to AI API
             $aiService = app(TogetherAIService::class);
-            $response = $aiService->extractDataFrom($text);
+            $result = $aiService->extractDataFrom($text);
 
             return [
                 'success' => true,
-                'data' => $response,
-                'raw_content' => $response
+                'data' => $result['content'],
+                'usage' => $result['usage'],
+                'raw_content' => $result['content']
             ];
 
         } catch (Exception $e) {
@@ -141,6 +143,23 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 // Clean up temp file
                 Storage::disk('public')->delete($this->filePath);
                 return;
+            }
+
+            // Consume actual tokens used by AI
+            if (isset($aiResponse['usage'])) {
+                $user = \App\Models\User::find($this->userId);
+                if ($user) {
+                    TokenService::consumeActualTokens(
+                        $user,
+                        \App\Enums\TokenAction::DOCUMENT_PROCESSING,
+                        $aiResponse['usage'],
+                        [
+                            'filename' => $this->originalFilename,
+                            'file_size_kb' => filesize($fullPath) / 1024,
+                            'profile_id' => $this->profileId,
+                        ]
+                    );
+                }
             }
 
             // Parse the JSON response data

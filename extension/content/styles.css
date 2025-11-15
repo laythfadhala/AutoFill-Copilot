@@ -221,7 +221,7 @@
     border-radius: 28px 0 0 28px !important;
     color: white !important;
     display: flex !important;
-    box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.3) !important;
+    /* box-shadow: -4px 4px 20px rgba(0, 0, 0, 0.3) !important; */
     transition: all 0.3s ease !important;
     position: relative !important;
     user-select: none !important;
@@ -267,7 +267,7 @@
 
 .autofill-floating-main-btn:hover {
     width: 55px !important;
-    box-shadow: -6px 6px 25px rgba(0, 0, 0, 0.4) !important;
+    /* box-shadow: -6px 6px 25px rgba(0, 0, 0, 0.4) !important; */
     border-color: white !important;
 }
 

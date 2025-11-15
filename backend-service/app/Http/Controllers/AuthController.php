@@ -32,6 +32,7 @@ class AuthController extends Controller
                 'email' => $googleUser->email,
                 'google_id' => $googleUser->id,
                 'avatar' => $googleUser->avatar,
+                'trial_ends_at' => now()->addDays(30), // 30 days trial
             ]);
         }
 
@@ -61,6 +62,7 @@ class AuthController extends Controller
                 // Note: Microsoft doesn't provide avatar URLs in basic OAuth
                 // Would need Microsoft Graph API with additional scopes for photos
                 'avatar' => null,
+                'trial_ends_at' => now()->addDays(30), // 30 days trial
             ]);
         }
 

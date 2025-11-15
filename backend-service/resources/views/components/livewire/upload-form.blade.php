@@ -5,6 +5,24 @@
     </div>
 @endif
 
+@if ($isTokenLimitReached)
+    <div class="alert alert-warning">
+        <i class="fas fa-lock me-2"></i>
+        <strong>AI Features Disabled</strong><br>
+        You've reached your monthly token limit. Document processing requires AI tokens.
+        <a href="{{ route('billing.subscriptions') }}" class="alert-link">Upgrade your plan</a> to continue.
+    </div>
+@endif
+
+@if ($isDocumentLimitReached)
+    <div class="alert alert-warning">
+        <i class="fas fa-lock me-2"></i>
+        <strong>Document Limit Reached</strong><br>
+        You've reached your document upload limit.
+        <a href="{{ route('billing.subscriptions') }}" class="alert-link">Upgrade your plan</a> to upload more documents.
+    </div>
+@endif
+
 <form wire:submit.prevent="processDocument">
     @if ($errors->any())
         <div class="alert alert-danger">
@@ -50,8 +68,17 @@
         </div>
     @endif
 
-    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="processDocument">
-        <span wire:loading.remove wire:target="processDocument">Upload & Process Files</span>
+    <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="processDocument"
+        @if ($isTokenLimitReached || $isDocumentLimitReached) disabled title="Limit reached. Please upgrade your plan." @endif>
+        <span wire:loading.remove wire:target="processDocument">
+            @if ($isTokenLimitReached)
+                <i class="fas fa-lock me-1"></i>Token Limit Reached
+            @elseif($isDocumentLimitReached)
+                <i class="fas fa-lock me-1"></i>Document Limit Reached
+            @else
+                Upload & Process Files
+            @endif
+        </span>
         <span wire:loading wire:target="processDocument">
             <span class="spinner-border spinner-border-sm" role="status"></span>
             Processing Files...

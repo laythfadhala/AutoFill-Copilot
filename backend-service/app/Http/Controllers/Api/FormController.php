@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
+use App\Services\TokenService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
@@ -87,19 +88,43 @@ class FormController extends Controller
                 Log::info('No active profile found, using AI generation only');
             }
 
+            // Calculate total fields for metadata
+            $totalFields = collect($formData['forms'])->sum(function ($form) {
+                return count($form['fields']);
+            });
+
             // Use AI service to fill the forms with user profile data
             $aiService = new TogetherAIService();
-            $filledData = $aiService->fillForm($formData, $profileData);
+            $result = $aiService->fillForm($formData, $profileData);
 
             // Check if AI service returned an error
-            if (isset($filledData['error'])) {
+            if (isset($result['error'])) {
                 return response()->json([
                     'success' => false,
                     'message' => 'AI service error',
-                    'error' => $filledData['error'],
-                    'error_type' => $filledData['error_type'] ?? 'unknown'
+                    'error' => $result['error'],
+                    'error_type' => $result['error_type'] ?? 'unknown'
                 ], 500);
             }
+
+            $filledData = $result['data'];
+            $aiUsage = $result['usage'];
+
+            // Consume actual tokens used by AI
+            $tokenUsage = TokenService::consumeActualTokens(
+                auth()->user(),
+                \App\Enums\TokenAction::FORM_FILL,
+                $aiUsage,
+                [
+                    'url' => $formData['url'],
+                    'forms_count' => count($formData['forms']),
+                    'fields_count' => $totalFields,
+                    'profile_used' => $profileData ? true : false,
+                    'profile_id' => $userProfile ? $userProfile->id : null,
+                ]
+            );
+
+            $tokensUsed = $tokenUsage->tokens_used;
 
             // Structure the response with filled form data
             $response = [
@@ -111,9 +136,8 @@ class FormController extends Controller
                     'url' => $formData['url'],
                     'title' => $formData['title'],
                     'forms_filled' => count($formData['forms']),
-                    'total_fields' => collect($formData['forms'])->sum(function ($form) {
-                        return count($form['fields']);
-                    }),
+                    'total_fields' => $totalFields,
+                    'tokens_used' => $tokensUsed,
                     'filled_data' => $filledData,
                     'profile_used' => $profileData ? true : false,
                     'profile_id' => $userProfile ? $userProfile->id : null,

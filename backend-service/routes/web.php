@@ -6,12 +6,14 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\BillingController;
+use App\Http\Controllers\StripeCheckoutController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('user.settings');
     Route::get('/account', [AccountController::class, 'manage'])->name('account.manage');
     Route::get('/billing', [BillingController::class, 'subscriptions'])->name('billing.subscriptions');
+    Route::post('/stripe/checkout', [StripeCheckoutController::class, 'createCheckoutSession'])->name('stripe.checkout');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 
