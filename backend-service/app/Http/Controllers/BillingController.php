@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\SubscriptionPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,39 +23,33 @@ class BillingController extends Controller
         // Get the most popular plan based on active subscriptions
         $mostPopularPlan = $this->getMostPopularPlan();
 
-        // Get dynamic free token limit for display
-        $freeTokenLimit = User::first()?->getDynamicFreeTokenLimit() ?? 100000;
-        $freeTokensFormatted = $freeTokenLimit >= 1000
-            ? ($freeTokenLimit / 1000) . 'K'
-            : $freeTokenLimit;
-
         return [
-            'free' => [
-                'name' => 'Free',
+            SubscriptionPlan::FREE->value => [
+                'name' => SubscriptionPlan::FREE->label(),
                 'price' => 0,
-                'tokens' => $freeTokensFormatted . '/month',
+                'tokens' => 'Limited per month',
                 'profiles' => 1,
                 'documents' => 10,
-                'features' => ['Basic AI model', 'Limited token usage'],
-                'popular' => $mostPopularPlan === 'free',
+                'features' => ['Basic AI model', 'Limited tokens based on service usage'],
+                'popular' => $mostPopularPlan === SubscriptionPlan::FREE->value,
             ],
-            'plus' => [
-                'name' => 'Plus',
+            SubscriptionPlan::PLUS->value => [
+                'name' => SubscriptionPlan::PLUS->label(),
                 'price' => 999, // $9.99
                 'tokens' => '5M/month',
                 'profiles' => 10,
                 'documents' => 50,
                 'features' => ['Advanced AI Model', 'Faster processing'],
-                'popular' => $mostPopularPlan === 'plus',
+                'popular' => $mostPopularPlan === SubscriptionPlan::PLUS->value,
             ],
-            'pro' => [
-                'name' => 'Professional',
+            SubscriptionPlan::PRO->value => [
+                'name' => SubscriptionPlan::PRO->label(),
                 'price' => 4999, // $49.99
                 'tokens' => '25M/month',
                 'profiles' => 'Unlimited',
                 'documents' => 'Unlimited',
                 'features' => ['Everything in Plus', 'Flagship AI Model', 'Priority support'],
-                'popular' => $mostPopularPlan === 'pro',
+                'popular' => $mostPopularPlan === SubscriptionPlan::PRO->value,
             ],
         ];
     }
@@ -65,7 +60,7 @@ class BillingController extends Controller
     private function getMostPopularPlan(): string
     {
         $popularPlan = User::where('subscription_status', 'active')
-            ->whereIn('subscription_plan', ['plus', 'pro']) // Only count paid plans
+            ->whereIn('subscription_plan', [SubscriptionPlan::PLUS->value, SubscriptionPlan::PRO->value]) // Only count paid plans
             ->select('subscription_plan', DB::raw('COUNT(*) as count'))
             ->groupBy('subscription_plan')
             ->orderBy('count', 'desc')
@@ -73,7 +68,7 @@ class BillingController extends Controller
 
         // Default to 'plus' if no paid subscription data exists yet
         if (!$popularPlan) {
-            return 'plus';
+            return SubscriptionPlan::PLUS->value;
         }
 
         return $popularPlan->subscription_plan;

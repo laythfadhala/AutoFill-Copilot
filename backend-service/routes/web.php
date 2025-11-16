@@ -14,6 +14,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/account', [AccountController::class, 'manage'])->name('account.manage');
     Route::get('/billing', [BillingController::class, 'subscriptions'])->name('billing.subscriptions');
     Route::post('/stripe/checkout', [StripeCheckoutController::class, 'createCheckoutSession'])->name('stripe.checkout');
+    Route::post('/stripe/portal', [StripeCheckoutController::class, 'createPortalSession'])->name('stripe.portal');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
 

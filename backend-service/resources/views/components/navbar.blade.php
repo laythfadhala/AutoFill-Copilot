@@ -1,4 +1,5 @@
-<nav class="navbar navbar-expand-md navbar-dark shadow-sm" style="background-color: #7060c8;">
+<nav class="navbar navbar-expand-md navbar-dark shadow-sm sticky-top" id="mainNavbar"
+    style="background-color: #7060c8; transition: transform 0.3s ease-in-out;">
     <div class="container-fluid px-4">
         <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('dashboard') }}">
             <img src="{{ asset('logo.png') }}" alt="{{ config('app.public_name') }}"
@@ -113,3 +114,64 @@
         @endauth
     </div>
 </nav>
+
+<script>
+    // Auto-hide/show navbar on scroll with smooth animation
+    (function() {
+        const navbar = document.getElementById('mainNavbar');
+        const navbarCollapse = document.getElementById('navbarNav');
+        const navbarToggler = document.querySelector('.navbar-toggler');
+        let lastScrollTop = 0;
+        let isTogglerClicked = false;
+
+        // Track when toggler is clicked to prevent hiding
+        if (navbarToggler) {
+            navbarToggler.addEventListener('click', function() {
+                isTogglerClicked = true;
+                navbar.style.transform = 'translateY(0)';
+
+                // Reset flag after animation completes
+                setTimeout(function() {
+                    isTogglerClicked = false;
+                }, 500);
+            });
+        }
+
+        window.addEventListener('scroll', function() {
+            // Don't hide navbar if mobile menu is open or toggler was just clicked
+            if (isTogglerClicked || (navbarCollapse && navbarCollapse.classList.contains('show'))) {
+                navbar.style.transform = 'translateY(0)';
+                return;
+            }
+
+            let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+            if (scrollTop > 10) {
+                // Hide when scrolling down, show when scrolling up
+                if (scrollTop > lastScrollTop) {
+                    // Scrolling down - hide navbar
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    // Scrolling up - show navbar
+                    navbar.style.transform = 'translateY(0)';
+                }
+            } else {
+                // At top of page - always visible
+                navbar.style.transform = 'translateY(0)';
+            }
+
+            lastScrollTop = scrollTop;
+        });
+
+        // Ensure navbar is visible when mobile menu opens/closes
+        if (navbarCollapse) {
+            navbarCollapse.addEventListener('show.bs.collapse', function() {
+                navbar.style.transform = 'translateY(0)';
+            });
+
+            navbarCollapse.addEventListener('hide.bs.collapse', function() {
+                navbar.style.transform = 'translateY(0)';
+            });
+        }
+    })();
+</script>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -96,7 +97,7 @@ class StripeWebhookController extends Controller
 
         // Update user subscription
         $user->update([
-            'current_plan' => $plan,
+            'subscription_plan' => $plan,
             'subscription_status' => 'active',
             'stripe_customer_id' => $session->customer,
             'stripe_subscription_id' => $session->subscription,
@@ -130,7 +131,7 @@ class StripeWebhookController extends Controller
         $plan = $subscription->metadata->plan ?? $this->determinePlanFromAmount($subscription->items->data[0]->price->unit_amount);
 
         $user->update([
-            'current_plan' => $status === 'active' ? $plan : $user->current_plan,
+            'subscription_plan' => $status === 'active' ? $plan : $user->subscription_plan,
             'subscription_status' => $status,
             'stripe_subscription_id' => $subscription->id,
         ]);
@@ -155,7 +156,7 @@ class StripeWebhookController extends Controller
         }
 
         $user->update([
-            'current_plan' => 'free',
+            'subscription_plan' => 'free',
             'subscription_status' => 'canceled',
         ]);
 
@@ -209,15 +210,14 @@ class StripeWebhookController extends Controller
     /**
      * Determine plan from amount (in cents)
      */
-    protected function determinePlanFromAmount($amount)
+    private function mapStripePriceIdToPlan(string $priceId): string
     {
-        // Amount is in cents
-        if ($amount >= 2999) { // $29.99 or more
-            return 'pro';
-        } elseif ($amount >= 999) { // $9.99 or more
-            return 'plus';
+        if ($priceId === env('STRIPE_PRO_PRICE_ID')) {
+            return SubscriptionPlan::PRO->value;
         }
-
-        return 'free';
+        if ($priceId === env('STRIPE_PLUS_PRICE_ID')) {
+            return SubscriptionPlan::PLUS->value;
+        }
+        return SubscriptionPlan::FREE->value;
     }
 }

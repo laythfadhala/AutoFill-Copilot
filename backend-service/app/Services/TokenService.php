@@ -10,34 +10,6 @@ use Carbon\Carbon;
 class TokenService
 {
     /**
-     * Calculate tokens used for form filling based on field count.
-     */
-    public static function calculateFormFillTokens(int $fieldCount): int
-    {
-        // Base tokens for form filling action
-        $baseTokens = 10;
-
-        // Additional tokens per field (more complex fields use more tokens)
-        $fieldTokens = $fieldCount * 2;
-
-        return $baseTokens + $fieldTokens;
-    }
-
-    /**
-     * Calculate tokens used for document processing.
-     */
-    public static function calculateDocumentTokens(int $documentSizeKb): int
-    {
-        // Base tokens for document processing
-        $baseTokens = 50;
-
-        // Additional tokens based on document size
-        $sizeTokens = ceil($documentSizeKb / 10); // 1 token per 10KB
-
-        return $baseTokens + $sizeTokens;
-    }
-
-    /**
      * Consume tokens for a specific action.
      */
     public static function consumeTokens(User $user, TokenAction|string $action, int $tokensUsed, array $metadata = []): TokenUsage
@@ -132,14 +104,6 @@ class TokenService
     }
 
     /**
-     * Check if user can perform an action with given token cost.
-     */
-    public static function canConsumeTokens(User $user, int $tokensNeeded): bool
-    {
-        return $user->canUseTokens($tokensNeeded);
-    }
-
-    /**
      * Get usage statistics for the current month.
      */
     public static function getMonthlyUsage(User $user): array
@@ -157,26 +121,5 @@ class TokenService
         ];
     }
 
-    /**
-     * Get trial status and time remaining.
-     */
-    public static function getTrialStatus(User $user): array
-    {
-        if (!$user->onTrial()) {
-            return [
-                'on_trial' => false,
-                'trial_ends_at' => null,
-                'days_remaining' => 0,
-            ];
-        }
 
-        $daysRemaining = now()->diffInDays($user->trial_ends_at, false);
-
-        return [
-            'on_trial' => true,
-            'trial_ends_at' => $user->trial_ends_at,
-            'days_remaining' => max(0, $daysRemaining),
-            'is_trial_ending' => $daysRemaining <= 3, // Warning when 3 days left
-        ];
-    }
 }

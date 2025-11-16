@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriptionPlan;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -79,17 +80,9 @@ class User extends Authenticatable
     /**
      * Get the current subscription plan.
      */
-    public function getCurrentPlanAttribute()
+    public function getCurrentPlan()
     {
-        return $this->subscription_plan ?? 'free';
-    }
-
-    /**
-     * Check if user is on trial.
-     */
-    public function onTrial()
-    {
-        return $this->trial_ends_at && $this->trial_ends_at->isFuture();
+        return $this->subscription_plan ?? SubscriptionPlan::FREE->value;
     }
 
     /**
@@ -106,45 +99,39 @@ class User extends Authenticatable
      */
     public function getTokenLimit()
     {
-        return match($this->current_plan) {
-            'free' => $this->getDynamicFreeTokenLimit(),
-            'plus' => 5000000, // 5M
-            'pro' => 25000000, // 25M
-            default => 10000,
-        };
+        $limits = [
+            SubscriptionPlan::FREE->value => $this->getDynamicFreeTokenLimit(),
+            SubscriptionPlan::PLUS->value => 5000000, // 5M
+            SubscriptionPlan::PRO->value => 25000000, // 25M
+        ];
+
+        $plan = $this->getCurrentPlan();
+        return $limits[$plan] ?? $limits[SubscriptionPlan::FREE->value];
     }
 
     /**
      * Calculate dynamic token limit for free users based on active free user count.
-     * More free users = lower limit per user to manage costs.
+     * Fixed 100K tokens per user up to 10,000 users.
+     * Beyond 10,000 users, divide 1B token pool among all free users.
      */
     public function getDynamicFreeTokenLimit(): int
     {
-        // Count active free users (on trial or active free plan)
-        $activeFreeUsers = static::where('subscription_plan', 'free')
-            ->where(function($query) {
-                $query->where('trial_ends_at', '>', now())
-                      ->orWhere('subscription_status', 'active');
-            })
+        // Count active free users
+        $activeFreeUsers = static::where('subscription_plan', SubscriptionPlan::FREE->value)
+            ->where('subscription_status', 'active')
             ->count();
 
-        // Base allocation: 100K tokens for early stage (up to 10K users)
-        // After that, use logarithmic scaling to reduce per-user limit
-        $baseLimit = 100000; // 100K tokens
-        $userThreshold = 10000; // Keep generous limit up to 10K users
-        $minLimit = 10000; // Minimum 10K tokens even with massive user base
+        $userThreshold = 10000; // Keep fixed 100K limit up to 10K users
+        $baseLimit = 100000; // 100K tokens per user
+        $totalPoolLimit = 1000000000; // 1 billion token pool
 
+        // Up to 10K users: everyone gets 100K tokens
         if ($activeFreeUsers <= $userThreshold) {
             return $baseLimit;
         }
 
-        // Logarithmic decay formula: limit = base / log10(users / threshold)
-        // This gradually reduces the limit as user count grows beyond threshold
-        $scaleFactor = log10($activeFreeUsers / $userThreshold);
-        $calculatedLimit = (int) ($baseLimit / (1 + $scaleFactor));
-
-        // Ensure we never go below minimum limit
-        return max($calculatedLimit, $minLimit);
+        // Beyond 10K users: divide 1B pool among all users
+        return (int) floor($totalPoolLimit / $activeFreeUsers);
     }
 
     /**
@@ -152,12 +139,13 @@ class User extends Authenticatable
      */
     public function getProfileLimit()
     {
-        return match($this->current_plan) {
-            'free' => 1,
-            'plus' => 10,
-            'pro' => null, // unlimited
-            default => 1,
-        };
+        $limits = [
+            SubscriptionPlan::FREE->value => 1,
+            SubscriptionPlan::PLUS->value => 10,
+            SubscriptionPlan::PRO->value => null, // unlimited
+        ];
+
+        return $limits[$this->getCurrentPlan()] ?? $limits[SubscriptionPlan::FREE->value];
     }
 
     /**
@@ -165,12 +153,13 @@ class User extends Authenticatable
      */
     public function getDocumentLimit()
     {
-        return match($this->current_plan) {
-            'free' => 10,
-            'plus' => 50,
-            'pro' => null, // unlimited
-            default => 10,
-        };
+        $limits = [
+            SubscriptionPlan::FREE->value => 10,
+            SubscriptionPlan::PLUS->value => 50,
+            SubscriptionPlan::PRO->value => null, // unlimited
+        ];
+
+        return $limits[$this->getCurrentPlan()] ?? $limits[SubscriptionPlan::FREE->value];
     }
 
     /**

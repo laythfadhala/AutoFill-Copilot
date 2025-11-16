@@ -34,7 +34,7 @@ class CheckSubscriptionLimits
                         'upgrade_required' => true,
                         'current_usage' => $user->getTokensUsedThisMonth(),
                         'limit' => $user->getTokenLimit(),
-                        'current_plan' => $user->current_plan,
+                        'subscription_plan' => $user->subscription_plan,
                         'upgrade_url' => route('billing.subscriptions'),
                         'suggestion' => 'Upgrade to Plus (5M tokens) or Pro (25M tokens) for unlimited AI-powered form filling.',
                     ], 402); // Payment Required
@@ -50,7 +50,7 @@ class CheckSubscriptionLimits
                         'upgrade_required' => true,
                         'current_usage' => $user->userProfiles()->count(),
                         'limit' => $user->getProfileLimit(),
-                        'current_plan' => $user->current_plan,
+                        'subscription_plan' => $user->subscription_plan,
                         'upgrade_url' => route('billing.subscriptions'),
                     ], 402);
                 }
@@ -65,7 +65,7 @@ class CheckSubscriptionLimits
                         'upgrade_required' => true,
                         'current_usage' => $user->getDocumentCount(),
                         'limit' => $user->getDocumentLimit(),
-                        'current_plan' => $user->current_plan,
+                        'subscription_plan' => $user->subscription_plan,
                         'upgrade_url' => route('billing.subscriptions'),
                     ], 402);
                 }

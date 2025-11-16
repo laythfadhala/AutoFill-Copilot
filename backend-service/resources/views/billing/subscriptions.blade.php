@@ -2,6 +2,10 @@
 
 @section('title', 'Billing & Subscriptions')
 
+@php
+    use App\Enums\SubscriptionPlan;
+@endphp
+
 @section('styles')
     @livewireStyles
     <style>
@@ -76,23 +80,6 @@
                     </div>
                 @endif
 
-                <!-- Trial Status -->
-                @if ($user->onTrial())
-                    <div class="trial-banner">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h5 class="mb-1">🎉 You're on a free trial!</h5>
-                                <p class="mb-0">Enjoy full access to all features.
-                                    {{ $user->trial_ends_at->diffForHumans() }}.</p>
-                            </div>
-                            <div class="text-end">
-                                <div class="h4 mb-0">{{ $user->trial_ends_at->format('M j, Y') }}</div>
-                                <small>Trial ends</small>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-
                 <!-- Current Usage -->
                 <div class="card mb-4">
                     <div class="card-header">
@@ -143,12 +130,20 @@
                             </div>
                         </div>
 
-                        @if ($user->current_plan !== 'free')
+                        @if ($user->subscription_plan !== SubscriptionPlan::FREE->value)
                             <div class="mt-3 text-center">
-                                <a href="https://billing.stripe.com/p/login/eVqcN69Oj8V41Ayf4H1ck00"
-                                    class="btn btn-outline-primary" target="_blank">
-                                    Manage Subscription
-                                </a>
+                                @if ($user->stripe_customer_id)
+                                    <form action="{{ route('stripe.portal') }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="btn btn-outline-primary">
+                                            Manage Subscription
+                                        </button>
+                                    </form>
+                                @else
+                                    <div class="alert alert-warning">
+                                        No Stripe customer ID found. Please contact support.
+                                    </div>
+                                @endif
                                 <small class="d-block mt-2 text-muted">Update payment method, view invoices, or cancel
                                     subscription</small>
                             </div>
@@ -162,7 +157,7 @@
                     @foreach ($plans as $planKey => $plan)
                         <div class="col-md-4 mb-4">
                             <div
-                                class="plan-card card h-100 {{ $user->current_plan === $planKey ? 'current-plan' : '' }} {{ $plan['popular'] ?? false ? 'popular' : '' }}">
+                                class="plan-card card h-100 {{ $user->subscription_plan === $planKey ? 'current-plan' : '' }} {{ $plan['popular'] ?? false ? 'popular' : '' }}">
                                 <div class="card-body d-flex flex-column">
                                     <div class="text-center mb-3">
                                         <h4 class="card-title">{{ $plan['name'] }}</h4>
@@ -184,23 +179,30 @@
 
                                     <ul class="list-unstyled mb-4 grow">
                                         @foreach ($plan['features'] as $feature)
-                                            <li class="mb-1">✓ {{ $feature }}</li>
+                                            <li class="mb-1">
+                                                ✓ {{ $feature }}
+                                                @if ($planKey === SubscriptionPlan::FREE->value && $feature === 'Limited tokens based on service usage')
+                                                    <x-info-tooltip
+                                                        message="Your token limit adjusts based on total app usage to ensure fair access for all free users. Upgrade for guaranteed high limits." />
+                                                @endif
+                                            </li>
                                         @endforeach
                                     </ul>
 
                                     <div class="mt-auto">
-                                        @if ($user->current_plan === $planKey)
+                                        @if ($user->subscription_plan === $planKey)
                                             <button class="btn btn-outline-primary w-100" disabled>
                                                 Current Plan
                                             </button>
-                                        @elseif($planKey === 'free')
+                                        @elseif($planKey === SubscriptionPlan::FREE->value)
                                             <button class="btn btn-outline-secondary w-100" disabled>
                                                 Free Plan
                                             </button>
-                                        @elseif($planKey === 'plus')
+                                        @elseif($planKey === SubscriptionPlan::PLUS->value)
                                             <form action="{{ route('stripe.checkout') }}" method="POST">
                                                 @csrf
-                                                <input type="hidden" name="plan" value="plus">
+                                                <input type="hidden" name="plan"
+                                                    value="{{ SubscriptionPlan::PLUS->value }}">
                                                 <button type="submit" class="btn btn-primary w-100">
                                                     Upgrade to Plus
                                                 </button>
@@ -224,31 +226,6 @@
                         </div>
                     @endforeach
                 </div>
-
-                <!-- Trial Expiry Warning -->
-                @if ($user->onTrial() && $user->trial_ends_at->diffInDays(now()) <= 3)
-                    <div class="alert alert-warning">
-                        <h5>⚠️ Trial Ending Soon!</h5>
-                        <p>Your free trial ends {{ $user->trial_ends_at->diffForHumans() }}. Upgrade now to keep
-                            your autofill magic running!</p>
-                        <button class="btn btn-warning subscribe-btn" data-plan="pro">
-                            Upgrade to Pro - $9.99/month
-                        </button>
-                    </div>
-                @endif
-
-                <!-- Token Limit Reached -->
-                @if ($user->getTokensUsedThisMonth() >= $user->getTokenLimit())
-                    <div class="alert alert-danger">
-                        <h5>🎉 You've used all your trial tokens!</h5>
-                        <p>You filled {{ $user->getFormsFilledThisMonth() }} forms and saved approximately
-                            {{ $user->getTimeSavedThisMonth() }}. Upgrade to keep your autofill magic
-                            running.</p>
-                        <button class="btn btn-danger subscribe-btn" data-plan="pro">
-                            Upgrade Now - $9.99/month
-                        </button>
-                    </div>
-                @endif
             </div>
         </div>
     </div>

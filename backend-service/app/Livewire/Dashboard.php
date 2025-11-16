@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\SubscriptionPlan;
 use Livewire\Component;
 use App\Services\TokenService;
 
@@ -32,21 +33,11 @@ class Dashboard extends Component
     public function getSubscriptionData()
     {
         $user = auth()->user();
-        if (!$user) {
-            return [
-                'current_plan' => 'free',
-                'trial_status' => ['on_trial' => false, 'days_remaining' => 0],
-                'usage' => ['tokens' => 0, 'tokens_limit' => 10000, 'tokens_remaining' => 10000, 'usage_percentage' => 0, 'is_near_limit' => false, 'is_over_limit' => false],
-                'limits' => ['tokens' => 10000, 'profiles' => 1, 'documents' => 10],
-                'counts' => ['profiles' => 0, 'documents' => 0]
-            ];
-        }
-
         $monthlyUsage = TokenService::getMonthlyUsage($user);
 
         return [
-            'current_plan' => $user->current_plan ?? 'free',
-            'trial_status' => TokenService::getTrialStatus($user),
+            'has_subscription' => true,
+            'subscription_plan' => $user->subscription_plan ?? SubscriptionPlan::FREE->value,
             'usage' => [
                 'tokens' => $monthlyUsage['tokens_used'] ?? 0,
                 'tokens_limit' => $monthlyUsage['tokens_limit'] ?? 10000,
