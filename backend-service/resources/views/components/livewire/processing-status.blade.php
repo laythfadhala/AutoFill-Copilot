@@ -1,11 +1,3 @@
-@if ($isProcessing)
-    <div class="mt-3">
-        <div class="alert alert-info">
-            <strong>Processing:</strong> {{ $processingStatus }}
-        </div>
-    </div>
-@endif
-
 @if (!empty($jobStatuses))
     <div class="mt-3" wire:poll.5s="checkJobStatuses">
         <div class="card">
