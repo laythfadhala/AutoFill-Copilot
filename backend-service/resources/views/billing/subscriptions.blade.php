@@ -86,31 +86,44 @@
                         <h5 class="mb-0">Current Usage ({{ now()->format('F Y') }})</h5>
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h4 text-primary">{{ number_format($user->getTokensUsedThisMonth()) }}</div>
-                                    <div class="text-muted">Tokens Used</div>
-                                    <div class="usage-bar mt-2">
-                                        <div class="usage-fill"
-                                            style="width: {{ $user->getTokenLimit() > 0 ? min(100, ($user->getTokensUsedThisMonth() / $user->getTokenLimit()) * 100) : 0 }}%">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <div class="mb-2">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-semibold">AI Tokens</span>
+                                        <span class="badge bg-primary">
+                                            {{ number_format($user->getTokensUsedThisMonth()) }} /
+                                            {{ number_format($user->getTokenLimit()) }}
+                                        </span>
+                                    </div>
+                                    <div class="progress" style="height: 10px;">
+                                        <div class="progress-bar bg-primary" role="progressbar"
+                                            style="width: {{ $user->getTokenLimit() > 0 ? min(100, ($user->getTokensUsedThisMonth() / $user->getTokenLimit()) * 100) : 0 }}%"
+                                            aria-valuenow="{{ $user->getTokensUsedThisMonth() }}" aria-valuemin="0"
+                                            aria-valuemax="{{ $user->getTokenLimit() }}">
                                         </div>
                                     </div>
                                     <small class="text-muted mt-1 d-block">
-                                        {{ number_format($user->getTokenLimit() - $user->getTokensUsedThisMonth()) }}
+                                        {{ number_format($user->getTokenLimit() - $user->getTokensUsedThisMonth()) }} tokens
                                         remaining
                                     </small>
                                 </div>
                             </div>
+                            <div class="col-md-4 text-center">
+                                <div class="display-6 text-primary fw-bold">
+                                    {{ number_format((($user->getTokenLimit() - $user->getTokensUsedThisMonth()) / $user->getTokenLimit()) * 100, 0) }}%
+                                </div>
+                                <small class="text-muted">Available</small>
+                            </div>
                         </div>
 
                         @if ($user->subscription_plan !== SubscriptionPlan::FREE->value)
-                            <div class="mt-3 text-center">
+                            <div class="mt-3 text-center border-top pt-3">
                                 @if ($user->stripe_customer_id)
                                     <form action="{{ route('stripe.portal') }}" method="POST">
                                         @csrf
                                         <button type="submit" class="btn btn-outline-primary">
-                                            Manage Subscription
+                                            <i class="fas fa-cog me-1"></i> Manage Subscription
                                         </button>
                                     </form>
                                 @else
