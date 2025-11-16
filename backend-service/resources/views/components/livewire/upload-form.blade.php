@@ -5,15 +5,6 @@
     </div>
 @endif
 
-@if ($isTokenLimitReached)
-    <div class="alert alert-warning">
-        <i class="fas fa-lock me-2"></i>
-        <strong>AI Features Disabled</strong><br>
-        You've reached your monthly token limit. Document processing requires AI tokens.
-        <a href="{{ route('billing.subscriptions') }}" class="alert-link">Upgrade your plan</a> to continue.
-    </div>
-@endif
-
 <form wire:submit.prevent="processDocument">
     @if ($errors->any())
         <div class="alert alert-danger">

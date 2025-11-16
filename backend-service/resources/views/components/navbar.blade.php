@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-md navbar-dark shadow-sm sticky-top" id="mainNavbar"
     style="background-color: #7060c8; transition: transform 0.3s ease-in-out;">
     <div class="container-fluid px-4">
-        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ route('dashboard') }}">
+        <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url('/') }}">
             <img src="{{ asset('logo.png') }}" alt="{{ config('app.public_name') }}"
                 style="height: 32px; width: 32px; margin-right: 8px;">
             {{ config('app.public_name') }}

@@ -12,7 +12,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/settings', [SettingsController::class, 'edit'])->name('user.settings');
     Route::get('/account', [AccountController::class, 'manage'])->name('account.manage');
-    Route::get('/billing', [BillingController::class, 'subscriptions'])->name('billing.subscriptions');
+    Route::get('/subscriptions', [BillingController::class, 'subscriptions'])->name('billing.subscriptions');
     Route::post('/stripe/checkout', [StripeCheckoutController::class, 'createCheckoutSession'])->name('stripe.checkout');
     Route::post('/stripe/portal', [StripeCheckoutController::class, 'createPortalSession'])->name('stripe.portal');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

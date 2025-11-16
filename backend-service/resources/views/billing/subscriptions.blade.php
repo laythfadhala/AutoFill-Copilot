@@ -86,32 +86,45 @@
                         <h5 class="mb-0">Current Usage ({{ now()->format('F Y') }})</h5>
                     </div>
                     <div class="card-body">
+                        @php
+                            $tokensUsed = $user->getTokensUsedThisMonth();
+                            $tokensLimit = $user->getTokenLimit();
+                            $tokensRemaining = max(0, $tokensLimit - $tokensUsed);
+                            $usagePercentage = $tokensLimit > 0 ? min(100, ($tokensUsed / $tokensLimit) * 100) : 0;
+                            $availablePercentage = max(0, 100 - $usagePercentage);
+                            $isOverLimit = $tokensUsed > $tokensLimit;
+                        @endphp
+
                         <div class="row align-items-center">
                             <div class="col-md-8">
                                 <div class="mb-2">
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <span class="fw-semibold">AI Tokens</span>
-                                        <span class="badge bg-primary">
-                                            {{ number_format($user->getTokensUsedThisMonth()) }} /
-                                            {{ number_format($user->getTokenLimit()) }}
-                                        </span>
+                                        <div class="d-flex align-items-center gap-1">
+                                            @if ($user->subscription_plan === SubscriptionPlan::FREE->value)
+                                                <x-info-tooltip
+                                                    message="Your token limit adjusts based on total app usage to ensure fair access for all free users. Upgrade for guaranteed high limits." />
+                                            @endif
+                                            <span class="badge {{ $isOverLimit ? 'bg-danger' : 'bg-primary' }}">
+                                                {{ number_format($tokensUsed) }} / {{ number_format($tokensLimit) }}
+                                            </span>
+                                        </div>
                                     </div>
                                     <div class="progress" style="height: 10px;">
-                                        <div class="progress-bar bg-primary" role="progressbar"
-                                            style="width: {{ $user->getTokenLimit() > 0 ? min(100, ($user->getTokensUsedThisMonth() / $user->getTokenLimit()) * 100) : 0 }}%"
-                                            aria-valuenow="{{ $user->getTokensUsedThisMonth() }}" aria-valuemin="0"
-                                            aria-valuemax="{{ $user->getTokenLimit() }}">
+                                        <div class="progress-bar {{ $isOverLimit ? 'bg-danger' : 'bg-primary' }}"
+                                            role="progressbar" style="width: {{ $usagePercentage }}%"
+                                            aria-valuenow="{{ $tokensUsed }}" aria-valuemin="0"
+                                            aria-valuemax="{{ $tokensLimit }}">
                                         </div>
                                     </div>
                                     <small class="text-muted mt-1 d-block">
-                                        {{ number_format($user->getTokenLimit() - $user->getTokensUsedThisMonth()) }} tokens
-                                        remaining
+                                        {{ number_format($tokensRemaining) }} tokens remaining
                                     </small>
                                 </div>
                             </div>
                             <div class="col-md-4 text-center">
-                                <div class="display-6 text-primary fw-bold">
-                                    {{ number_format((($user->getTokenLimit() - $user->getTokensUsedThisMonth()) / $user->getTokenLimit()) * 100, 0) }}%
+                                <div class="display-6 {{ $isOverLimit ? 'text-danger' : 'text-primary' }} fw-bold">
+                                    {{ number_format($availablePercentage, 0) }}%
                                 </div>
                                 <small class="text-muted">Available</small>
                             </div>
@@ -142,7 +155,7 @@
                 <h3 class="mb-4">Choose Your Plan</h3>
                 <div class="row">
                     @foreach ($plans as $planKey => $plan)
-                        <div class="col-md-4 mb-4">
+                        <div class="col-md-4 mb-4" id="plan-{{ $planKey }}">
                             <div
                                 class="plan-card card h-100 {{ $user->subscription_plan === $planKey ? 'current-plan' : '' }} {{ $plan['popular'] ?? false ? 'popular' : '' }}">
                                 <div class="card-body d-flex flex-column">
@@ -193,7 +206,8 @@
                                                 </button>
                                             </form>
                                         @else
-                                            <form action="{{ route('stripe.checkout') }}" method="POST">
+                                            <form id="upgrade-form-{{ $planKey }}"
+                                                action="{{ route('stripe.checkout') }}" method="POST">
                                                 @csrf
                                                 <input type="hidden" name="plan" value="{{ $planKey }}">
                                                 <button type="submit" class="btn btn-primary w-100">
