@@ -2,12 +2,7 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5>Manage Profiles</h5>
         <div>
-            @if ($isProfileLimitReached)
-                <x-info-tooltip
-                    message="You've reached your profile limit. Upgrade to Plus or Pro to create more profiles." />
-            @endif
-            <button wire:click="openCreateForm" class="btn btn-primary btn-sm m-1"
-                @if ($isProfileLimitReached) disabled @endif>
+            <button wire:click="openCreateForm" class="btn btn-primary btn-sm m-1">
                 Create New Profile
             </button>
         </div>
@@ -171,12 +166,7 @@
                     <h6>No profiles found</h6>
                     <p>Create your first profile to start organizing your documents.</p>
                     <div>
-                        @if ($isProfileLimitReached)
-                            <x-info-tooltip
-                                message="You've reached your profile limit. Upgrade to Plus or Pro to create more profiles." />
-                        @endif
-                        <button wire:click="openCreateForm" class="btn btn-primary"
-                            @if ($isProfileLimitReached) disabled @endif>
+                        <button wire:click="openCreateForm" class="btn btn-primary">
                             Create Profile
                         </button>
                     </div>

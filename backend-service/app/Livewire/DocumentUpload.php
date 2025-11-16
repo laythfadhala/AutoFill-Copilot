@@ -19,7 +19,7 @@ class DocumentUpload extends Component
     public $jobStatuses = []; // Track job statuses
     public $currentBatchId = null; // Track current batch
     public $isTokenLimitReached = false;
-    public $isDocumentLimitReached = false;
+
 
     protected $listeners = ['profileUpdated' => 'loadUserProfiles'];
 
@@ -83,12 +83,6 @@ class DocumentUpload extends Component
         $this->validate();
 
         $user = auth()->user();
-
-        // Check document limit
-        if (!$user->canUploadDocument()) {
-            $this->addError('limit', 'You\'ve reached your document limit (' . $user->getDocumentLimit() . '). Upgrade your plan to process more documents.');
-            return;
-        }
 
         $this->isProcessing = true;
         $totalFiles = count($this->documents);

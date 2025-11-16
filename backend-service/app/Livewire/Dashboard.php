@@ -46,11 +46,7 @@ class Dashboard extends Component
                 'is_near_limit' => $monthlyUsage['is_near_limit'] ?? false,
                 'is_over_limit' => $monthlyUsage['is_over_limit'] ?? false,
             ],
-            'limits' => [
-                'tokens' => $user->getTokenLimit(),
-                'profiles' => $user->getProfileLimit(),
-                'documents' => $user->getDocumentLimit(),
-            ],
+            'limits' => [],
             'counts' => [
                 'profiles' => $user->userProfiles()->count(),
                 'documents' => $user->getDocumentCount(),
@@ -65,8 +61,6 @@ class Dashboard extends Component
         return view('livewire.dashboard', [
             'subscriptionData' => $this->getSubscriptionData(),
             'isTokenLimitReached' => $user && !$user->hasRole('admin') && ($this->getSubscriptionData()['usage']['is_over_limit'] ?? false),
-            'isProfileLimitReached' => $user && !$user->hasRole('admin') && !$user->canCreateProfile(),
-            'isDocumentLimitReached' => $user && !$user->hasRole('admin') && !$user->canUploadDocument(),
         ]);
     }
 }

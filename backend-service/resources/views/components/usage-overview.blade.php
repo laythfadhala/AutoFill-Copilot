@@ -10,24 +10,8 @@
     $isNearTokenLimit = $tokenUsage['is_near_limit'];
     $isOverTokenLimit = $tokenUsage['is_over_limit'];
 
-    $profileLimit = $limits['profiles'];
-    $profileCount = $counts['profiles'];
-    $isNearProfileLimit = $profileLimit && $profileCount >= $profileLimit * 0.8;
-    $isOverProfileLimit = $profileLimit && $profileCount >= $profileLimit;
-
-    $documentLimit = $limits['documents'];
-    $documentCount = $counts['documents'];
-    $isNearDocumentLimit = $documentLimit && $documentCount >= $documentLimit * 0.8;
-    $isOverDocumentLimit = $documentLimit && $documentCount >= $documentLimit;
-
-    $hasAnyWarnings =
-        $isOverTokenLimit ||
-        $isNearTokenLimit ||
-        $isOverProfileLimit ||
-        $isNearProfileLimit ||
-        $isOverDocumentLimit ||
-        $isNearDocumentLimit;
-    $hasCriticalIssues = $isOverTokenLimit || $isOverProfileLimit || $isOverDocumentLimit;
+    $hasAnyWarnings = $isOverTokenLimit || $isNearTokenLimit;
+    $hasCriticalIssues = $isOverTokenLimit;
 @endphp
 
 @if ($hasAnyWarnings)
@@ -40,7 +24,7 @@
 
                 <div class="row g-3">
                     <!-- Token Usage -->
-                    <div class="col-md-4">
+                    <div class="col-md-12">
                         <div
                             class="border rounded p-3 {{ $isOverTokenLimit ? 'border-danger' : ($isNearTokenLimit ? 'border-warning' : 'border-secondary') }}">
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -67,62 +51,6 @@
                             @endif
                         </div>
                     </div>
-
-                    <!-- Profile Usage -->
-                    @if ($profileLimit)
-                        <div class="col-md-4">
-                            <div
-                                class="border rounded p-3 {{ $isOverProfileLimit ? 'border-danger' : ($isNearProfileLimit ? 'border-warning' : 'border-secondary') }}">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-semibold">Profiles</span>
-                                    <span
-                                        class="badge {{ $isOverProfileLimit ? 'bg-danger' : ($isNearProfileLimit ? 'bg-warning' : 'bg-secondary') }}">
-                                        {{ number_format($profileCount) }}/{{ number_format($profileLimit) }}
-                                    </span>
-                                </div>
-                                <div class="progress mb-2" style="height: 6px;">
-                                    <div class="progress-bar {{ $isOverProfileLimit ? 'bg-danger' : ($isNearProfileLimit ? 'bg-warning' : 'bg-success') }}"
-                                        style="width: {{ min(100, ($profileCount / $profileLimit) * 100) }}%">
-                                    </div>
-                                </div>
-                                @if ($isOverProfileLimit)
-                                    <small class="text-danger fw-semibold">Profile creation disabled</small>
-                                @elseif ($isNearProfileLimit)
-                                    <small class="text-warning fw-semibold">Near limit</small>
-                                @else
-                                    <small class="text-muted">Available</small>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Document Usage -->
-                    @if ($documentLimit)
-                        <div class="col-md-4">
-                            <div
-                                class="border rounded p-3 {{ $isOverDocumentLimit ? 'border-danger' : ($isNearDocumentLimit ? 'border-warning' : 'border-secondary') }}">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <span class="fw-semibold">Documents</span>
-                                    <span
-                                        class="badge {{ $isOverDocumentLimit ? 'bg-danger' : ($isNearDocumentLimit ? 'bg-warning' : 'bg-secondary') }}">
-                                        {{ number_format($documentCount) }}/{{ number_format($documentLimit) }}
-                                    </span>
-                                </div>
-                                <div class="progress mb-2" style="height: 6px;">
-                                    <div class="progress-bar {{ $isOverDocumentLimit ? 'bg-danger' : ($isNearDocumentLimit ? 'bg-warning' : 'bg-success') }}"
-                                        style="width: {{ min(100, ($documentCount / $documentLimit) * 100) }}%">
-                                    </div>
-                                </div>
-                                @if ($isOverDocumentLimit)
-                                    <small class="text-danger fw-semibold">Upload disabled</small>
-                                @elseif ($isNearDocumentLimit)
-                                    <small class="text-warning fw-semibold">Near limit</small>
-                                @else
-                                    <small class="text-muted">Available</small>
-                                @endif
-                            </div>
-                        </div>
-                    @endif
                 </div>
 
                 <div class="mt-3">

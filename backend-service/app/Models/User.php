@@ -134,33 +134,7 @@ class User extends Authenticatable
         return (int) floor($totalPoolLimit / $activeFreeUsers);
     }
 
-    /**
-     * Get profile limit based on current plan.
-     */
-    public function getProfileLimit()
-    {
-        $limits = [
-            SubscriptionPlan::FREE->value => 1,
-            SubscriptionPlan::PLUS->value => 10,
-            SubscriptionPlan::PRO->value => null, // unlimited
-        ];
 
-        return $limits[$this->getCurrentPlan()] ?? $limits[SubscriptionPlan::FREE->value];
-    }
-
-    /**
-     * Get document limit based on current plan.
-     */
-    public function getDocumentLimit()
-    {
-        $limits = [
-            SubscriptionPlan::FREE->value => 10,
-            SubscriptionPlan::PLUS->value => 50,
-            SubscriptionPlan::PRO->value => null, // unlimited
-        ];
-
-        return $limits[$this->getCurrentPlan()] ?? $limits[SubscriptionPlan::FREE->value];
-    }
 
     /**
      * Get tokens used this month.
@@ -213,24 +187,7 @@ class User extends Authenticatable
         return ($this->getTokensUsedThisMonth() + $amount) <= $this->getTokenLimit();
     }
 
-    /**
-     * Check if user can create more profiles.
-     */
-    public function canCreateProfile()
-    {
-        $limit = $this->getProfileLimit();
-        return $limit === null || $this->userProfiles()->count() < $limit;
-    }
 
-    /**
-     * Check if user can upload more documents.
-     */
-    public function canUploadDocument()
-    {
-        $limit = $this->getDocumentLimit();
-        // Assuming documents are stored somewhere - you'll need to implement this
-        return $limit === null || $this->getDocumentCount() < $limit;
-    }
 
     /**
      * Get document count (counts documents stored in user profiles).

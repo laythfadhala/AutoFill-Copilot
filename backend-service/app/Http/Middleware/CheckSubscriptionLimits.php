@@ -40,36 +40,6 @@ class CheckSubscriptionLimits
                     ], 402); // Payment Required
                 }
                 break;
-
-            case 'profiles':
-                if (!$user->canCreateProfile()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You\'ve reached your profile limit. Upgrade to create more profiles.',
-                        'error_type' => 'profile_limit_exceeded',
-                        'upgrade_required' => true,
-                        'current_usage' => $user->userProfiles()->count(),
-                        'limit' => $user->getProfileLimit(),
-                        'subscription_plan' => $user->subscription_plan,
-                        'upgrade_url' => route('billing.subscriptions'),
-                    ], 402);
-                }
-                break;
-
-            case 'documents':
-                if (!$user->canUploadDocument()) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'You\'ve reached your document limit. Upgrade to process more documents.',
-                        'error_type' => 'document_limit_exceeded',
-                        'upgrade_required' => true,
-                        'current_usage' => $user->getDocumentCount(),
-                        'limit' => $user->getDocumentLimit(),
-                        'subscription_plan' => $user->subscription_plan,
-                        'upgrade_url' => route('billing.subscriptions'),
-                    ], 402);
-                }
-                break;
         }
 
         return $next($request);

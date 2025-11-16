@@ -102,32 +102,6 @@
                                     </small>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h4 text-success">{{ $user->userProfiles()->count() }}</div>
-                                    <div class="text-muted">Profiles</div>
-                                    <small class="text-muted mt-1 d-block">
-                                        @if ($user->getProfileLimit())
-                                            {{ $user->getProfileLimit() - $user->userProfiles()->count() }} remaining
-                                        @else
-                                            Unlimited
-                                        @endif
-                                    </small>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <div class="h4 text-info">{{ $user->getDocumentCount() }}</div>
-                                    <div class="text-muted">Documents</div>
-                                    <small class="text-muted mt-1 d-block">
-                                        @if ($user->getDocumentLimit())
-                                            {{ $user->getDocumentLimit() - $user->getDocumentCount() }} remaining
-                                        @else
-                                            Unlimited
-                                        @endif
-                                    </small>
-                                </div>
-                            </div>
                         </div>
 
                         @if ($user->subscription_plan !== SubscriptionPlan::FREE->value)
@@ -173,8 +147,6 @@
 
                                     <div class="mb-3">
                                         <div class="mb-2"><strong>🧠 {{ $plan['tokens'] }} tokens</strong></div>
-                                        <div class="mb-2"><strong>👤 {{ $plan['profiles'] }} profiles</strong></div>
-                                        <div class="mb-2"><strong>📄 {{ $plan['documents'] }} documents</strong></div>
                                     </div>
 
                                     <ul class="list-unstyled mb-4 grow">

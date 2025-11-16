@@ -14,7 +14,7 @@ class ProfileManager extends Component
     public $showCreateForm = false;
     public $editingProfile = null;
     public $isTokenLimitReached = false;
-    public $isProfileLimitReached = false;
+
 
     public $name = '';
     public $type = '';
@@ -67,12 +67,6 @@ class ProfileManager extends Component
         ]);
 
         $user = auth()->user();
-
-        // Check profile limit for new profiles
-        if (!$this->editingProfile && !$user->canCreateProfile()) {
-            $this->addError('limit', 'You\'ve reached your profile limit (' . $user->getProfileLimit() . '). Upgrade your plan to create more profiles.');
-            return;
-        }
 
         if ($profile = UserProfile::find($this->editingProfile)) {
             // Update existing profile
