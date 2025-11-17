@@ -39,11 +39,15 @@ class StripeCheckoutController extends Controller
                 'mode' => 'subscription',
                 'success_url' => route('billing.subscriptions', ['success' => 1], true),
                 'cancel_url' => route('billing.subscriptions', [], true),
-                'billing_address_collection' => 'auto',
+                'billing_address_collection' => 'required',
                 'automatic_tax' => ['enabled' => true],
                 'metadata' => [
                     'user_id' => $user->id,
                     'plan' => $plan,
+                    'email' => $user->email,
+                ],
+                'tax_id_collection' => [
+                    'enabled' => true,
                 ],
             ]);
 

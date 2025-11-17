@@ -14,7 +14,6 @@ class DocumentUpload extends Component
     public $documents = [];
     public $selectedProfile;
     public $isProcessing = false;
-    public $processingStatus = '';
     public $uploadedDocuments = [];
     public $jobStatuses = []; // Track job statuses
     public $currentBatchId = null; // Track current batch
@@ -88,16 +87,13 @@ class DocumentUpload extends Component
         $totalFiles = count($this->documents);
         $queuedFiles = 0;
         $errors = [];
-        $this->jobStatuses = []; // Reset job statuses
+        // Don't reset job statuses - append to existing ones to keep old uploads in the queue UI
+        // $this->jobStatuses = []; // Reset job statuses
 
         // Prepare jobs for batch processing
         $jobs = [];
         foreach ($this->documents as $index => $document) {
             try {
-                $this->processingStatus = "Validating file " . ($index + 1) . " of {$totalFiles}: {$document->getClientOriginalName()}";
-
-                $this->processingStatus = "Queueing file " . ($index + 1) . " of {$totalFiles} for processing: {$document->getClientOriginalName()}";
-
                 // Store the file temporarily for the job to process
                 $storedPath = $document->store('temp-documents', 'public');
 
@@ -138,13 +134,7 @@ class DocumentUpload extends Component
 
         // Set final status
         if ($queuedFiles > 0) {
-            $this->processingStatus = "Successfully queued {$queuedFiles} of {$totalFiles} files for processing!";
-            if (!empty($errors)) {
-                $this->processingStatus .= " Some files had errors.";
-            }
             session()->flash('success', "Successfully queued {$queuedFiles} of {$totalFiles} documents for background processing!");
-        } else {
-            $this->processingStatus = 'No files were queued successfully.';
         }
 
         // Show errors if any
@@ -177,7 +167,6 @@ class DocumentUpload extends Component
         } else {
             // Update status based on batch progress
             $completedJobs = $batch->processedJobs();
-            $totalJobs = $batch->totalJobs;
 
             for ($i = 0; $i < count($this->jobStatuses); $i++) {
                 if ($i < $completedJobs) {
@@ -227,7 +216,6 @@ class DocumentUpload extends Component
         $allProcessed = !$batch || $batch->finished();
         if ($allProcessed) {
             $this->isProcessing = false;
-            $this->processingStatus = 'All files processed!';
             // Clear session data when processing is complete
             session()->forget(['current_document_batch_id', 'current_job_statuses']);
         }
