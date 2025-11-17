@@ -14,6 +14,9 @@ class ProfileManager extends Component
     public $showCreateForm = false;
     public $editingProfile = null;
     public $isTokenLimitReached = false;
+    public $isProfileLimitReached = false;
+    public $profileCount = 0;
+    public $maxProfiles = null;
 
 
     public $name = '';
@@ -31,15 +34,31 @@ class ProfileManager extends Component
     public function mount()
     {
         $this->loadProfiles();
+        $this->updateProfileLimitStatus();
     }
 
     public function loadProfiles()
     {
         $this->profiles = auth()->user()->userProfiles()->get()->toArray();
+        $this->updateProfileLimitStatus();
+    }
+
+    private function updateProfileLimitStatus()
+    {
+        $user = auth()->user();
+        $this->profileCount = $user->getProfileCount();
+        $this->maxProfiles = $user->getMaxProfiles();
+        $this->isProfileLimitReached = $user->isProfileLimitReached();
     }
 
     public function openCreateForm()
     {
+        // Check if user can create more profiles
+        if (!auth()->user()->canCreateProfile()) {
+            session()->flash('error', 'Profile limit reached. Upgrade to a paid plan for unlimited profiles.');
+            return;
+        }
+
         $this->resetForm();
         $this->showCreateForm = true;
         $this->editingProfile = null;
@@ -79,6 +98,12 @@ class ProfileManager extends Component
 
             session()->flash('success', 'Profile updated successfully!');
         } else {
+            // Check if user can create more profiles
+            if (!$user->canCreateProfile()) {
+                session()->flash('error', 'Profile limit reached. You can only have ' . $user->getMaxProfiles() . ' profile(s) on the free plan. Upgrade to a paid plan for unlimited profiles.');
+                return;
+            }
+
             // Create new profile
             UserProfile::create([
                 'user_id' => auth()->id(),

@@ -18,6 +18,9 @@ class DocumentUpload extends Component
     public $jobStatuses = []; // Track job statuses
     public $currentBatchId = null; // Track current batch
     public $isTokenLimitReached = false;
+    public $isDocumentLimitReached = false;
+    public $documentCount = 0;
+    public $maxDocuments = null;
 
 
     protected $listeners = ['profileUpdated' => 'loadUserProfiles'];
@@ -34,6 +37,7 @@ class DocumentUpload extends Component
     public function mount()
     {
         $this->loadUserProfiles();
+        $this->updateDocumentLimitStatus();
 
         // Restore batch information from session if it exists
         $this->restoreBatchStatus();
@@ -75,6 +79,16 @@ class DocumentUpload extends Component
         } else {
             $this->uploadedDocuments = [];
         }
+
+        $this->updateDocumentLimitStatus();
+    }
+
+    private function updateDocumentLimitStatus()
+    {
+        $user = auth()->user();
+        $this->documentCount = $user->getDocumentCount();
+        $this->maxDocuments = $user->getMaxDocuments();
+        $this->isDocumentLimitReached = $user->isDocumentLimitReached();
     }
 
     public function processDocument()
@@ -82,6 +96,17 @@ class DocumentUpload extends Component
         $this->validate();
 
         $user = auth()->user();
+
+        // Check document limit before processing
+        $documentsToUpload = count($this->documents);
+        if (!$user->canUploadDocument($documentsToUpload)) {
+            $maxDocuments = $user->getMaxDocuments();
+            $currentCount = $user->getDocumentCount();
+            $remaining = $maxDocuments - $currentCount;
+
+            session()->flash('error', "Document limit reached. You can only upload {$remaining} more document(s) on the free plan. You currently have {$currentCount} of {$maxDocuments} documents. Upgrade to a paid plan for unlimited documents.");
+            return;
+        }
 
         $this->isProcessing = true;
         $totalFiles = count($this->documents);

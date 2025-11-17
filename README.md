@@ -160,13 +160,11 @@ docker-compose up -d --build
 
 ### Profile Management
 
-| Method   | Endpoint                          | Description         |
-| -------- | --------------------------------- | ------------------- |
-| `GET`    | `/api/user-profiles`              | List user profiles  |
-| `POST`   | `/api/user-profiles`              | Create new profile  |
-| `PUT`    | `/api/user-profiles/{id}`         | Update profile      |
-| `DELETE` | `/api/user-profiles/{id}`         | Delete profile      |
-| `GET`    | `/api/users/{id}/default-profile` | Get default profile |
+| Method | Endpoint        | Description                         |
+| ------ | --------------- | ----------------------------------- |
+| `GET`  | `/api/profiles` | List user profiles (for extensions) |
+
+**Note:** Profile management (create, update, delete) is handled through the web dashboard using Livewire components.
 
 ### AutoFill Engine
 

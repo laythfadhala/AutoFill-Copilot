@@ -32,9 +32,8 @@ This is the backend API service for AutoFill Copilot, built with Laravel 11. It 
 app/
 ├── Http/Controllers/Api/     # API Controllers
 │   ├── AuthController.php    # Authentication endpoints
-│   ├── UserController.php    # User management
-│   ├── UserProfileController.php  # Profile CRUD
-│   └── FormMappingController.php  # (removed)
+│   ├── ProfileController.php # Profile listing for extensions
+│   └── FormController.php    # Form filling endpoints
 ├── Models/                   # Eloquent Models
 │   ├── User.php             # User model
 │   ├── UserProfile.php      # Profile data model
@@ -112,8 +111,14 @@ php artisan test --filter AuthTest
 See the main project README for complete API documentation. Key endpoints:
 
 -   `POST /api/auth/login` - User authentication
--   `GET /api/user-profiles` - Profile management
+-   OAuth2 (Google, Microsoft)
+-   `GET /api/profiles` - Profile listing for extensions
+-   Profile CRUD handled through web dashboard (Livewire components)
+
+### AI Integration
+
     -- (AutoFill endpoints removed)
+
 -   `GET /api/health` - Health check
 
 ## License

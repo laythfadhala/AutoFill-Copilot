@@ -59,6 +59,8 @@ class StripeWebhookController extends Controller
                 Log::info('Stripe webhook: Unhandled event type', ['type' => $event->type]);
         }
 
+        \Log::debug(var_export($request->all(), true));
+
         return response()->json(['status' => 'success']);
     }
 

@@ -28,14 +28,24 @@ class BillingController extends Controller
                 'name' => SubscriptionPlan::FREE->label(),
                 'price' => 0,
                 'tokens' => 'Limited per month',
-                'features' => ['Basic AI model', 'Limited tokens based on service usage'],
+                'features' => [
+                    'Basic AI model',
+                    'Limited tokens based on service usage',
+                    '1 profile',
+                    '5 documents',
+                ],
                 'popular' => $mostPopularPlan === SubscriptionPlan::FREE->value,
             ],
             SubscriptionPlan::PLUS->value => [
                 'name' => SubscriptionPlan::PLUS->label(),
                 'price' => 999, // $9.99
                 'tokens' => '5M/month',
-                'features' => ['Advanced AI Model', 'Faster processing'],
+                'features' => [
+                    'Advanced AI Model',
+                    'Faster processing',
+                    'Unlimited profiles',
+                    'Unlimited documents'
+                ],
                 'popular' => $mostPopularPlan === SubscriptionPlan::PLUS->value,
             ],
             SubscriptionPlan::PRO->value => [

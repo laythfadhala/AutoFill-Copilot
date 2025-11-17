@@ -2,8 +2,17 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5>Manage Profiles</h5>
         <div>
-            <button wire:click="openCreateForm" class="btn btn-primary btn-sm m-1">
-                Create New Profile
+            @if ($isProfileLimitReached)
+                <x-info-tooltip
+                    message="Profile Limit: {{ $profileCount }}/{{ $maxProfiles }} - Please consider upgrading to a paid plan for unlimited profiles." />
+            @endif
+            <button wire:click="openCreateForm" class="btn btn-primary btn-sm m-1"
+                @if ($isProfileLimitReached) disabled @endif>
+                @if ($isProfileLimitReached)
+                    <i class="fas fa-lock me-1"></i>Profile Limit Reached
+                @else
+                    Create New Profile
+                @endif
             </button>
         </div>
     </div>

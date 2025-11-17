@@ -216,4 +216,76 @@ class User extends Authenticatable
 
         return $totalDocuments;
     }
+
+    /**
+     * Get profile count for this user.
+     */
+    public function getProfileCount()
+    {
+        return $this->userProfiles()->count();
+    }
+
+    /**
+     * Get max profiles allowed for current subscription plan.
+     */
+    public function getMaxProfiles(): ?int
+    {
+        $plan = SubscriptionPlan::from($this->getCurrentPlan());
+        return $plan->maxProfiles();
+    }
+
+    /**
+     * Get max documents allowed for current subscription plan.
+     */
+    public function getMaxDocuments(): ?int
+    {
+        $plan = SubscriptionPlan::from($this->getCurrentPlan());
+        return $plan->maxDocuments();
+    }
+
+    /**
+     * Check if user can create a new profile.
+     */
+    public function canCreateProfile(): bool
+    {
+        $maxProfiles = $this->getMaxProfiles();
+
+        // null means unlimited (for paid plans)
+        if ($maxProfiles === null) {
+            return true;
+        }
+
+        return $this->getProfileCount() < $maxProfiles;
+    }
+
+    /**
+     * Check if user can upload more documents.
+     */
+    public function canUploadDocument(int $additionalDocuments = 1): bool
+    {
+        $maxDocuments = $this->getMaxDocuments();
+
+        // null means unlimited (for paid plans)
+        if ($maxDocuments === null) {
+            return true;
+        }
+
+        return ($this->getDocumentCount() + $additionalDocuments) <= $maxDocuments;
+    }
+
+    /**
+     * Check if profile limit is reached.
+     */
+    public function isProfileLimitReached(): bool
+    {
+        return !$this->canCreateProfile();
+    }
+
+    /**
+     * Check if document limit is reached.
+     */
+    public function isDocumentLimitReached(): bool
+    {
+        return !$this->canUploadDocument();
+    }
 }

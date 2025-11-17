@@ -41,6 +41,30 @@ enum SubscriptionPlan: string
     }
 
     /**
+     * Get maximum number of profiles allowed
+     */
+    public function maxProfiles(): ?int
+    {
+        return match($this) {
+            self::FREE => 1,
+            self::PLUS => null, // Unlimited
+            self::PRO => null, // Unlimited
+        };
+    }
+
+    /**
+     * Get maximum number of documents allowed
+     */
+    public function maxDocuments(): ?int
+    {
+        return match($this) {
+            self::FREE => 5,
+            self::PLUS => null, // Unlimited
+            self::PRO => null, // Unlimited
+        };
+    }
+
+    /**
      * Check if plan is free
      */
     public function isFree(): bool

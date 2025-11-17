@@ -27,8 +27,18 @@
 
     <div class="mb-3">
         <label for="documents" class="form-label">Document Files</label>
+        @if ($isDocumentLimitReached)
+            <div class="alert alert-warning small mb-2">
+                <i class="fas fa-exclamation-triangle"></i> Document Limit: {{ $documentCount }}/{{ $maxDocuments }} -
+                Please consider upgrading to a paid plan for unlimited documents.
+            </div>
+        @elseif ($maxDocuments !== null)
+            <div class="text-muted small mb-2">
+                <i class="fas fa-info-circle"></i> Documents: {{ $documentCount }}/{{ $maxDocuments }}
+            </div>
+        @endif
         <input type="file" wire:model="documents" class="form-control" id="documents" accept=".pdf,.jpg,.jpeg,.png"
-            multiple>
+            multiple @if ($isDocumentLimitReached) disabled @endif>
         <div class="form-text">Supported formats: PDF, JPG, PNG (max 5MB per file, up to 10 files)<br>
             <small class="text-muted">💡 <strong>Tips:</strong> For best results, ensure PDFs contain
                 selectable text (not just images). High-quality scans work better than photos.</small>
@@ -51,10 +61,15 @@
     @endif
 
     <button type="submit" class="btn btn-primary" wire:loading.attr="disabled" wire:target="processDocument"
-        @if ($isTokenLimitReached) disabled title="Token limit reached. Please upgrade your plan." @endif>
+        @if ($isTokenLimitReached || $isDocumentLimitReached) disabled
+            @if ($isTokenLimitReached) title="Token limit reached. Please upgrade your plan."
+            @elseif ($isDocumentLimitReached) title="Document limit reached. Please upgrade your plan." @endif
+        @endif>
         <span wire:loading.remove wire:target="processDocument">
             @if ($isTokenLimitReached)
                 <i class="fas fa-lock me-1"></i>Token Limit Reached
+            @elseif ($isDocumentLimitReached)
+                <i class="fas fa-lock me-1"></i>Document Limit Reached
             @else
                 Upload & Process Files
             @endif
