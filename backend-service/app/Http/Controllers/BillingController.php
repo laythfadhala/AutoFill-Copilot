@@ -27,7 +27,7 @@ class BillingController extends Controller
             SubscriptionPlan::FREE->value => [
                 'name' => SubscriptionPlan::FREE->label(),
                 'price' => 0,
-                'tokens' => 'Limited per month',
+                'tokens' => 'Limited',
                 'features' => [
                     'Basic AI model',
                     'Limited tokens based on service usage',
