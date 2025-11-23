@@ -79,4 +79,24 @@ enum SubscriptionPlan: string
     {
         return !$this->isFree();
     }
+
+    /**
+     * Get plan price in cents (Stripe format)
+     */
+    public function priceInCents(): int
+    {
+        return match($this) {
+            self::FREE => 0,
+            self::PLUS => 999, // $9.99
+            self::PRO => 4999, // $49.99
+        };
+    }
+
+    /**
+     * Get plan price in dollars
+     */
+    public function priceInDollars(): float
+    {
+        return $this->priceInCents() / 100;
+    }
 }

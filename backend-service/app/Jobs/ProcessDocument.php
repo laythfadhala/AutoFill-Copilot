@@ -2,31 +2,36 @@
 
 namespace App\Jobs;
 
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Bus\Batchable;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use App\Enums\TokenAction;
 use App\Models\UserProfile;
+use App\Services\TextExtraction\TextExtractionService;
 use App\Services\TogetherAIService;
 use App\Services\TokenService;
-use App\Services\TextExtraction\TextExtractionService;
 use App\Traits\FlattensJson;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Exception;
+use Illuminate\Bus\Batchable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
-class ProcessDocument implements ShouldQueue, ShouldBeUnique
+class ProcessDocument implements ShouldBeUnique, ShouldQueue
 {
-    use Queueable, Batchable, FlattensJson;
+    use Batchable, FlattensJson, Queueable;
 
     // this is the duration (in seconds) for which the job should be considered unique
     public $uniqueFor = 1000;
 
     protected $filePath;
+
     protected $originalFilename;
+
     protected $profileId;
+
     protected $userId;
+
     private TextExtractionService $textExtractor;
 
     /**
@@ -51,18 +56,19 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
 
     /**
      * Process a document file and extract data using AI
-     * @param string $filePath Path to the uploaded file
+     *
+     * @param  string  $filePath  Path to the uploaded file
      * @return array Extracted data from the document
      */
     private function processTextFromDocument(string $filePath): array
     {
         try {
             // Check if file exists
-            if (!file_exists($filePath)) {
+            if (! file_exists($filePath)) {
                 return [
-                    'error' => 'File not found: ' . basename($filePath),
+                    'error' => 'File not found: '.basename($filePath),
                     'success' => false,
-                    'error_type' => 'file_not_found'
+                    'error_type' => 'file_not_found',
                 ];
             }
 
@@ -71,11 +77,11 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
             Log::info('Processing file', ['file' => basename($filePath), 'mime_type' => $mimeType]);
 
             // Check if MIME type is supported
-            if (!$this->textExtractor->supportsMimeType($mimeType)) {
+            if (! $this->textExtractor->supportsMimeType($mimeType)) {
                 return [
-                    'error' => 'Unsupported file type: ' . $mimeType . '. Supported types: PDF, images, and plain text files.',
+                    'error' => 'Unsupported file type: '.$mimeType.'. Supported types: PDF, images, and plain text files.',
                     'success' => false,
-                    'error_type' => 'unsupported_file_type'
+                    'error_type' => 'unsupported_file_type',
                 ];
             }
 
@@ -86,7 +92,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 return [
                     'error' => 'Could not extract text from file. The file might be corrupted, empty, or in an unsupported format.',
                     'success' => false,
-                    'error_type' => 'text_extraction_failed'
+                    'error_type' => 'text_extraction_failed',
                 ];
             }
 
@@ -98,18 +104,19 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 'success' => true,
                 'data' => $result['content'],
                 'usage' => $result['usage'],
-                'raw_content' => $result['content']
+                'raw_content' => $result['content'],
             ];
 
         } catch (Exception $e) {
             Log::error('Document processing failed', [
                 'file' => $filePath,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
+
             return [
-                'error' => 'Document processing failed: ' . $e->getMessage(),
+                'error' => 'Document processing failed: '.$e->getMessage(),
                 'success' => false,
-                'error_type' => 'processing_error'
+                'error_type' => 'processing_error',
             ];
         }
     }
@@ -122,8 +129,9 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
         try {
             // Get the profile
             $profile = UserProfile::find($this->profileId);
-            if (!$profile) {
+            if (! $profile) {
                 Log::error('Profile not found for document processing', ['profile_id' => $this->profileId]);
+
                 return;
             }
 
@@ -138,10 +146,11 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 Log::warning('Document processing error in job', [
                     'file' => $this->originalFilename,
                     'error' => $aiResponse['error'],
-                    'error_type' => $aiResponse['error_type'] ?? 'unknown'
+                    'error_type' => $aiResponse['error_type'] ?? 'unknown',
                 ]);
                 // Clean up temp file
                 Storage::disk('public')->delete($this->filePath);
+
                 return;
             }
 
@@ -151,7 +160,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 if ($user) {
                     TokenService::consumeActualTokens(
                         $user,
-                        \App\Enums\TokenAction::DOCUMENT_PROCESSING,
+                        TokenAction::DOCUMENT_PROCESSING,
                         $aiResponse['usage'],
                         [
                             'filename' => $this->originalFilename,
@@ -170,7 +179,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                     Log::error('Invalid JSON response from AI in job', [
                         'file' => $this->originalFilename,
                         'json_error' => json_last_error_msg(),
-                        'raw_content' => substr($aiResponse['data'], 0, 500)
+                        'raw_content' => substr($aiResponse['data'], 0, 500),
                     ]);
                     $jsonData = ['error' => 'Invalid JSON response from AI', 'raw_content' => $aiResponse['data']];
                 }
@@ -198,7 +207,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
             Log::info('Document processed successfully', [
                 'filename' => $this->originalFilename,
                 'profile_id' => $this->profileId,
-                'user_id' => $this->userId
+                'user_id' => $this->userId,
             ]);
 
         } catch (\Exception $e) {
@@ -207,7 +216,7 @@ class ProcessDocument implements ShouldQueue, ShouldBeUnique
                 'profile_id' => $this->profileId,
                 'user_id' => $this->userId,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // Clean up temp file on error

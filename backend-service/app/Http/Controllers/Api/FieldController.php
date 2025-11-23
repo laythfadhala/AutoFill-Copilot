@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TokenAction;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class FieldController extends Controller
 {
     /**
      * Fill a single form field with AI-generated data
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function fill(Request $request, TogetherAIService $aiService)
@@ -35,7 +35,7 @@ class FieldController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -46,7 +46,7 @@ class FieldController extends Controller
                 'user_id' => auth()->id(),
                 'field_name' => $fieldData['name'],
                 'field_type' => $fieldData['type'] ?? 'text',
-                'field_label' => $fieldData['label'] ?? null
+                'field_label' => $fieldData['label'] ?? null,
             ]);
 
             // Get user's default active profile data
@@ -61,7 +61,7 @@ class FieldController extends Controller
                 Log::info('Using user profile data for field filling', [
                     'profile_id' => $userProfile->id,
                     'profile_name' => $userProfile->name,
-                    'data_fields' => count($profileData)
+                    'data_fields' => count($profileData),
                 ]);
             } else {
                 Log::info('No active default profile found, using AI generation only');
@@ -76,10 +76,10 @@ class FieldController extends Controller
                         'id' => 'singleField',
                         'action' => '',
                         'method' => 'GET',
-                        'fields' => [$fieldData]
-                    ]
+                        'fields' => [$fieldData],
+                    ],
                 ],
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ];
 
             $result = $aiService->fillForm($formData, $profileData);
@@ -90,7 +90,7 @@ class FieldController extends Controller
                     'success' => false,
                     'message' => 'AI service error',
                     'error' => $result['error'],
-                    'error_type' => $result['error_type'] ?? 'unknown'
+                    'error_type' => $result['error_type'] ?? 'unknown',
                 ], 500);
             }
 
@@ -100,7 +100,7 @@ class FieldController extends Controller
             // Consume actual tokens used by AI
             $tokenUsage = TokenService::consumeActualTokens(
                 auth()->user(),
-                \App\Enums\TokenAction::FIELD_FILL,
+                TokenAction::FIELD_FILL,
                 $aiUsage,
                 [
                     'field_name' => $fieldData['name'],
@@ -117,11 +117,12 @@ class FieldController extends Controller
             if ($filledValue === null) {
                 Log::warning('AI service did not provide a value for the field', [
                     'field_name' => $fieldName,
-                    'filled_data_keys' => array_keys($filledData)
+                    'filled_data_keys' => array_keys($filledData),
                 ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => 'Unable to generate appropriate content for this field'
+                    'message' => 'Unable to generate appropriate content for this field',
                 ], 400);
             }
 
@@ -131,7 +132,7 @@ class FieldController extends Controller
                 'filledValue' => $filledValue,
                 'message' => $profileData
                     ? 'Field filled successfully using your profile data and AI assistance'
-                    : 'Field filled successfully with AI-generated data'
+                    : 'Field filled successfully with AI-generated data',
             ];
 
             return response()->json($response);
@@ -141,13 +142,13 @@ class FieldController extends Controller
                 'user_id' => auth()->id(),
                 'field_name' => $request->input('name'),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while filling the field',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

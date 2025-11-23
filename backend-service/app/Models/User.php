@@ -3,18 +3,20 @@
 namespace App\Models;
 
 use App\Enums\SubscriptionPlan;
+use App\Enums\SubscriptionStatus;
+use App\Enums\TokenAction;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-use Carbon\Carbon;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -29,11 +31,14 @@ class User extends Authenticatable
         'microsoft_id',
         'avatar',
         'subscription_plan',
+        'pending_plan',
+        'payment_status',
         'subscription_status',
         'trial_ends_at',
         'subscription_ends_at',
         'stripe_customer_id',
         'stripe_subscription_id',
+        'stripe_schedule_id',
     ];
 
     /**
@@ -86,11 +91,39 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user has a pending plan change.
+     */
+    public function hasPendingPlanChange()
+    {
+        return $this->pending_plan !== null &&
+               $this->pending_plan !== $this->subscription_plan &&
+               $this->subscription_ends_at !== null;
+    }
+
+    /**
+     * Get the effective plan (current or pending if downgrading).
+     */
+    public function getEffectivePlan()
+    {
+        // If there's a pending change scheduled for the future
+        if ($this->hasPendingPlanChange() && $this->subscription_ends_at->isFuture()) {
+            return $this->subscription_plan; // Still using current plan
+        }
+
+        // If subscription period has ended and there's a pending plan
+        if ($this->pending_plan && $this->subscription_ends_at && $this->subscription_ends_at->isPast()) {
+            return $this->pending_plan;
+        }
+
+        return $this->getCurrentPlan();
+    }
+
+    /**
      * Check if user has active subscription.
      */
     public function hasActiveSubscription()
     {
-        return $this->subscription_status === 'active' &&
+        return $this->subscription_status === SubscriptionStatus::ACTIVE->value &&
                ($this->subscription_ends_at === null || $this->subscription_ends_at->isFuture());
     }
 
@@ -106,6 +139,7 @@ class User extends Authenticatable
         ];
 
         $plan = $this->getCurrentPlan();
+
         return $limits[$plan] ?? $limits[SubscriptionPlan::FREE->value];
     }
 
@@ -118,7 +152,7 @@ class User extends Authenticatable
     {
         // Count active free users
         $activeFreeUsers = static::where('subscription_plan', SubscriptionPlan::FREE->value)
-            ->where('subscription_status', 'active')
+            ->where('subscription_status', SubscriptionStatus::ACTIVE->value)
             ->count();
 
         $userThreshold = 10000; // Keep fixed 100K limit up to 10K users
@@ -133,8 +167,6 @@ class User extends Authenticatable
         // Beyond 10K users: divide 1B pool among all users
         return (int) floor($totalPoolLimit / $activeFreeUsers);
     }
-
-
 
     /**
      * Get tokens used this month.
@@ -151,7 +183,7 @@ class User extends Authenticatable
     public function getFormsFilledThisMonth()
     {
         $formRecord = $this->tokenUsages()
-            ->where('action', \App\Enums\TokenAction::FORM_FILL->value)
+            ->where('action', TokenAction::FORM_FILL->value)
             ->first();
 
         return $formRecord?->count_this_month ?? 0;
@@ -166,17 +198,17 @@ class User extends Authenticatable
         $minutesSaved = $formsFilled * 5; // 5 minutes per form
 
         if ($minutesSaved < 60) {
-            return $minutesSaved . ' minute' . ($minutesSaved !== 1 ? 's' : '');
+            return $minutesSaved.' minute'.($minutesSaved !== 1 ? 's' : '');
         }
 
         $hours = floor($minutesSaved / 60);
         $remainingMinutes = $minutesSaved % 60;
 
         if ($remainingMinutes === 0) {
-            return $hours . ' hour' . ($hours !== 1 ? 's' : '');
+            return $hours.' hour'.($hours !== 1 ? 's' : '');
         }
 
-        return $hours . ' hour' . ($hours !== 1 ? 's' : '') . ' and ' . $remainingMinutes . ' minute' . ($remainingMinutes !== 1 ? 's' : '');
+        return $hours.' hour'.($hours !== 1 ? 's' : '').' and '.$remainingMinutes.' minute'.($remainingMinutes !== 1 ? 's' : '');
     }
 
     /**
@@ -186,8 +218,6 @@ class User extends Authenticatable
     {
         return ($this->getTokensUsedThisMonth() + $amount) <= $this->getTokenLimit();
     }
-
-
 
     /**
      * Get document count (counts documents stored in user profiles).
@@ -231,6 +261,7 @@ class User extends Authenticatable
     public function getMaxProfiles(): ?int
     {
         $plan = SubscriptionPlan::from($this->getCurrentPlan());
+
         return $plan->maxProfiles();
     }
 
@@ -240,6 +271,7 @@ class User extends Authenticatable
     public function getMaxDocuments(): ?int
     {
         $plan = SubscriptionPlan::from($this->getCurrentPlan());
+
         return $plan->maxDocuments();
     }
 
@@ -256,6 +288,67 @@ class User extends Authenticatable
         }
 
         return $this->getProfileCount() < $maxProfiles;
+    }
+
+    /**
+     * Get pending plan change information for display.
+     */
+    public function getPendingPlanInfo(): ?array
+    {
+        if (! $this->hasPendingPlanChange()) {
+            return null;
+        }
+
+        $currentPlanEnum = SubscriptionPlan::from($this->subscription_plan);
+        $pendingPlanEnum = SubscriptionPlan::from($this->pending_plan);
+
+        return [
+            'current_plan' => $this->subscription_plan,
+            'current_plan_label' => $currentPlanEnum->label(),
+            'pending_plan' => $this->pending_plan,
+            'pending_plan_label' => $pendingPlanEnum->label(),
+            'effective_date' => $this->subscription_ends_at,
+            'is_downgrade' => $this->isDowngrade(),
+            'is_upgrade' => $this->isUpgrade(),
+            'days_remaining' => $this->subscription_ends_at ?
+                Carbon::now()->diffInDays($this->subscription_ends_at, false) : null,
+        ];
+    }
+
+    /**
+     * Check if pending change is a downgrade.
+     */
+    public function isDowngrade(): bool
+    {
+        if (! $this->pending_plan) {
+            return false;
+        }
+
+        $planHierarchy = [
+            SubscriptionPlan::FREE->value => 0,
+            SubscriptionPlan::PLUS->value => 1,
+            SubscriptionPlan::PRO->value => 2,
+        ];
+
+        return ($planHierarchy[$this->pending_plan] ?? 0) < ($planHierarchy[$this->subscription_plan] ?? 0);
+    }
+
+    /**
+     * Check if pending change is an upgrade.
+     */
+    public function isUpgrade(): bool
+    {
+        if (! $this->pending_plan) {
+            return false;
+        }
+
+        $planHierarchy = [
+            SubscriptionPlan::FREE->value => 0,
+            SubscriptionPlan::PLUS->value => 1,
+            SubscriptionPlan::PRO->value => 2,
+        ];
+
+        return ($planHierarchy[$this->pending_plan] ?? 0) > ($planHierarchy[$this->subscription_plan] ?? 0);
     }
 
     /**
@@ -278,7 +371,7 @@ class User extends Authenticatable
      */
     public function isProfileLimitReached(): bool
     {
-        return !$this->canCreateProfile();
+        return ! $this->canCreateProfile();
     }
 
     /**
@@ -286,6 +379,6 @@ class User extends Authenticatable
      */
     public function isDocumentLimitReached(): bool
     {
-        return !$this->canUploadDocument();
+        return ! $this->canUploadDocument();
     }
 }

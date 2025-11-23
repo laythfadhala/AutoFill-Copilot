@@ -72,7 +72,7 @@ services:
         condition: service_healthy
     networks:
       - autofill-network
-    command: bash -c "/scripts/release_reserved.sh && sleep 5 && php artisan horizon"
+    command: bash -c "/scripts/release_reserved.sh && sleep 5 && php artisan horizon & php artisan schedule:work"
 
   # Redis - Caching and sessions
   redis:

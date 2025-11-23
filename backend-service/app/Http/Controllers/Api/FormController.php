@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\TokenAction;
 use App\Http\Controllers\Controller;
 use App\Models\UserProfile;
 use App\Services\TogetherAIService;
 use App\Services\TokenService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 
 class FormController extends Controller
 {
     /**
      * Fill form fields with AI-generated data
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function fill(Request $request)
@@ -38,14 +38,14 @@ class FormController extends Controller
                 'forms.*.fields.*.options.*.text' => 'nullable|string|max:512',
                 'forms.*.fields.*.options.*.selected' => 'nullable|boolean',
                 'timestamp' => 'required|date',
-                'profile_id' => 'nullable|integer|exists:user_profiles,id'
+                'profile_id' => 'nullable|integer|exists:user_profiles,id',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Validation failed',
-                    'errors' => $validator->errors()
+                    'errors' => $validator->errors(),
                 ], 422);
             }
 
@@ -58,7 +58,7 @@ class FormController extends Controller
                 'title' => $formData['title'],
                 'forms_count' => count($formData['forms']),
                 'timestamp' => $formData['timestamp'],
-                'profile_id' => $formData['profile_id'] ?? null
+                'profile_id' => $formData['profile_id'] ?? null,
             ]);
 
             // Get user profile data - use specified profile or default active profile
@@ -82,7 +82,7 @@ class FormController extends Controller
                     'profile_id' => $userProfile->id,
                     'profile_name' => $userProfile->name,
                     'data_fields' => count($profileData),
-                    'is_default' => $userProfile->is_default
+                    'is_default' => $userProfile->is_default,
                 ]);
             } else {
                 Log::info('No active profile found, using AI generation only');
@@ -94,7 +94,7 @@ class FormController extends Controller
             });
 
             // Use AI service to fill the forms with user profile data
-            $aiService = new TogetherAIService();
+            $aiService = new TogetherAIService;
             $result = $aiService->fillForm($formData, $profileData);
 
             // Check if AI service returned an error
@@ -103,7 +103,7 @@ class FormController extends Controller
                     'success' => false,
                     'message' => 'AI service error',
                     'error' => $result['error'],
-                    'error_type' => $result['error_type'] ?? 'unknown'
+                    'error_type' => $result['error_type'] ?? 'unknown',
                 ], 500);
             }
 
@@ -113,7 +113,7 @@ class FormController extends Controller
             // Consume actual tokens used by AI
             $tokenUsage = TokenService::consumeActualTokens(
                 auth()->user(),
-                \App\Enums\TokenAction::FORM_FILL,
+                TokenAction::FORM_FILL,
                 $aiUsage,
                 [
                     'url' => $formData['url'],
@@ -142,8 +142,8 @@ class FormController extends Controller
                     'profile_used' => $profileData ? true : false,
                     'profile_id' => $userProfile ? $userProfile->id : null,
                     'profile_name' => $userProfile ? $userProfile->name : null,
-                    'processed_at' => now()->toISOString()
-                ]
+                    'processed_at' => now()->toISOString(),
+                ],
             ];
 
             return response()->json($response);
@@ -152,13 +152,13 @@ class FormController extends Controller
             Log::error('Form filling error', [
                 'user_id' => auth()->id(),
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'An error occurred while filling form data',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ], 500);
         }
     }

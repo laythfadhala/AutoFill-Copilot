@@ -208,8 +208,7 @@
                                         @else
                                             <form id="upgrade-form-{{ $planKey }}"
                                                 action="{{ route('stripe.checkout') }}" method="POST">
-                                                @csrf
-                                                <input type="hidden" name="plan" value="{{ $planKey }}">
+                                                @csrf <input type="hidden" name="plan" value="{{ $planKey }}">
                                                 <button type="submit" class="btn btn-primary w-100">
                                                     @if ($user->subscription_status === 'canceled')
                                                         Reactivate Plan
